@@ -1,5 +1,5 @@
 jax==0.3.25
-jaxlib==0.4.13
+jaxlib==0.4.12
 flax==0.4.1
 optax==0.0.9
 pytest==6.2.4
