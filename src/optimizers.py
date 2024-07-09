@@ -1,5 +1,6 @@
 import jax
 import jax.numpy as jnp
+import jax.tree_util
 from typing import Callable, Tuple, Dict
 
 
@@ -15,7 +16,7 @@ def sgd(learning_rate: float) -> Callable[[Dict, Dict], Dict]:
         using SGD.
     """
     def update(params: Dict, grads: Dict) -> Dict:
-        return jax.tree_map(
+        return jax.tree_util.tree_map(
             lambda p, g: p - learning_rate * g, params, grads
         )
     return update
@@ -54,8 +55,8 @@ def adam(
         ]: A tuple containing the initialization and update functions for Adam.
     """
     def init(params: Dict) -> Tuple[Dict, Dict]:
-        m = jax.tree_map(jnp.zeros_like, params)
-        v = jax.tree_map(jnp.zeros_like, params)
+        m = jax.tree_util.tree_map(jnp.zeros_like, params)
+        v = jax.tree_util.tree_map(jnp.zeros_like, params)
         return m, v
 
     def update(
@@ -70,8 +71,8 @@ def adam(
             return beta2 * v + (1 - beta2) * jnp.square(g)
 
         m, v = state
-        m = jax.tree_map(update_m, m, grads)
-        v = jax.tree_map(update_v, v, grads)
+        m = jax.tree_util.tree_map(update_m, m, grads)
+        v = jax.tree_util.tree_map(update_v, v, grads)
 
         def m_hat_func(m):
             return m / (1 - beta1)
@@ -79,9 +80,9 @@ def adam(
         def v_hat_func(v):
             return v / (1 - beta2)
 
-        m_hat = jax.tree_map(m_hat_func, m)
-        v_hat = jax.tree_map(v_hat_func, v)
-        params = jax.tree_map(
+        m_hat = jax.tree_util.tree_map(m_hat_func, m)
+        v_hat = jax.tree_util.tree_map(v_hat_func, v)
+        params = jax.tree_util.tree_map(
             lambda p, m, v: p - learning_rate * m / (jnp.sqrt(v) + epsilon),
             params, m_hat, v_hat
         )
@@ -115,7 +116,7 @@ def rmsprop(
             RMSprop.
     """
     def init(params: Dict) -> Dict:
-        avg_sq_grad = jax.tree_map(jnp.zeros_like, params)
+        avg_sq_grad = jax.tree_util.tree_map(jnp.zeros_like, params)
         return avg_sq_grad
 
     def update(
@@ -124,11 +125,11 @@ def rmsprop(
         state: Dict
     ) -> Tuple[Dict, Dict]:
         avg_sq_grad = state
-        avg_sq_grad = jax.tree_map(
+        avg_sq_grad = jax.tree_util.tree_map(
             lambda avg, g: decay * avg + (1 - decay) * jnp.square(g),
             avg_sq_grad, grads
         )
-        params = jax.tree_map(
+        params = jax.tree_util.tree_map(
             lambda p, avg, g: p - learning_rate * g / (
                 jnp.sqrt(avg) + epsilon
             ),
@@ -152,7 +153,7 @@ def custom_optimizer(learning_rate: float) -> Callable[[Dict, Dict], Dict]:
     """
     def update(params: Dict, grads: Dict) -> Dict:
         # Example of a custom optimization algorithm
-        return jax.tree_map(
+        return jax.tree_util.tree_map(
             lambda p, g: p - learning_rate * jnp.sin(g), params, grads
         )
     return update
