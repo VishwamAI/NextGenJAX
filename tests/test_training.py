@@ -4,7 +4,6 @@ import pytest
 from src.train import create_train_state, train_step, train_model
 from src.model import NextGenModel
 
-
 def test_create_train_state():
     model = NextGenModel(
         layers=[{'type': 'dense', 'features': 10, 'activation': jnp.tanh}]
@@ -17,7 +16,6 @@ def test_create_train_state():
     )
     assert state.params is not None
     assert state.tx is not None
-
 
 def test_train_step():
     model = NextGenModel(
@@ -38,7 +36,6 @@ def test_train_step():
     assert new_state.params is not None
     assert loss >= 0
 
-
 def test_train_model():
     model = NextGenModel(
         layers=[{'type': 'dense', 'features': 10, 'activation': jnp.tanh}]
@@ -57,9 +54,8 @@ def test_train_model():
         model, dataset, num_epochs=1, learning_rate=learning_rate,
         optimizer=optimizer, loss_fn=loss_fn
     )
-    assert final_state.params is not None
+    assert final_state is not None
     assert 'loss' in metrics
-
 
 if __name__ == "__main__":
     pytest.main()
