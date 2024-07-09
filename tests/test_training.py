@@ -13,7 +13,9 @@ def test_create_train_state():
     input_shape = (1, 5)
     learning_rate = 0.01
     optimizer = 'sgd'
-    state = create_train_state(rng, model, input_shape, learning_rate, optimizer)
+    state = create_train_state(
+        rng, model, input_shape, learning_rate, optimizer
+    )
     assert state.params is not None
     assert state.tx is not None
 
@@ -26,7 +28,9 @@ def test_train_step():
     input_shape = (1, 5)
     learning_rate = 0.01
     optimizer = 'sgd'
-    state = create_train_state(rng, model, input_shape, learning_rate, optimizer)
+    state = create_train_state(
+        rng, model, input_shape, learning_rate, optimizer
+    )
     batch = {'x': jnp.ones((1, 5)), 'y': jnp.ones((1, 10))}
 
     def loss_fn(logits, labels):
@@ -45,13 +49,20 @@ def test_train_model():
     input_shape = (1, 5)
     learning_rate = 0.01
     optimizer = 'sgd'
-    state = create_train_state(rng, model, input_shape, learning_rate, optimizer)
-    dataset = [{'x': jnp.ones((1, 5)), 'y': jnp.ones((1, 10))} for _ in range(10)]
+    state = create_train_state(
+        rng, model, input_shape, learning_rate, optimizer
+    )
+    dataset = [
+        {'x': jnp.ones((1, 5)), 'y': jnp.ones((1, 10))}
+        for _ in range(10)
+    ]
 
     def loss_fn(logits, labels):
         return jnp.mean((logits - labels) ** 2)
 
-    final_state, metrics = train_model(state, dataset, loss_fn, num_epochs=1)
+    final_state, metrics = train_model(
+        state, dataset, loss_fn, num_epochs=1
+    )
     assert final_state.params is not None
     assert 'loss' in metrics
 
