@@ -25,7 +25,11 @@ def create_train_state(
         tx = custom_optimizer(learning_rate)
     else:
         raise ValueError(f"Unsupported optimizer: {optimizer}")
-    return train_state.TrainState.create(apply_fn=model.apply, params=params, tx=tx)
+    return train_state.TrainState.create(
+        apply_fn=model.apply,
+        params=params,
+        tx=tx
+    )
 
 
 @jit
