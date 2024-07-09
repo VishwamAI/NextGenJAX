@@ -10,11 +10,10 @@ def test_create_train_state():
         layers=[{'type': 'dense', 'features': 10, 'activation': jnp.tanh}]
     )
     rng = jax.random.PRNGKey(0)
-    input_shape = (1, 5)
     learning_rate = 0.01
     optimizer = 'sgd'
     state = create_train_state(
-        rng, model, input_shape, learning_rate, optimizer
+        rng, model, learning_rate, optimizer
     )
     assert state.params is not None
     assert state.tx is not None
@@ -25,11 +24,10 @@ def test_train_step():
         layers=[{'type': 'dense', 'features': 10, 'activation': jnp.tanh}]
     )
     rng = jax.random.PRNGKey(0)
-    input_shape = (1, 5)
     learning_rate = 0.01
     optimizer = 'sgd'
     state = create_train_state(
-        rng, model, input_shape, learning_rate, optimizer
+        rng, model, learning_rate, optimizer
     )
     batch = {'x': jnp.ones((1, 5)), 'y': jnp.ones((1, 10))}
 
@@ -46,11 +44,10 @@ def test_train_model():
         layers=[{'type': 'dense', 'features': 10, 'activation': jnp.tanh}]
     )
     rng = jax.random.PRNGKey(0)
-    input_shape = (1, 5)
     learning_rate = 0.01
     optimizer = 'sgd'
     state = create_train_state(
-        rng, model, input_shape, learning_rate, optimizer
+        rng, model, learning_rate, optimizer
     )
     dataset = [
         {'x': jnp.ones((1, 5)), 'y': jnp.ones((1, 10))}
