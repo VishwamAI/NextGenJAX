@@ -28,21 +28,29 @@ def adam(
     epsilon: float = 1e-8
 ) -> Tuple[
     Callable[[Dict], Tuple[Dict, Dict]],
-    Callable[[Dict, Dict, Tuple[Dict, Dict]], Tuple[Dict, Tuple[Dict, Dict]]]
+    Callable[
+        [Dict, Dict, Tuple[Dict, Dict]],
+        Tuple[Dict, Tuple[Dict, Dict]]
+    ]
 ]:
     """
     Adam optimizer.
 
     Args:
         learning_rate (float): The learning rate for the optimizer.
-        beta1 (float): The exponential decay rate for the first moment estimates.
-        beta2 (float): The exponential decay rate for the second moment estimates.
+        beta1 (float): The exponential decay rate for the first moment
+        estimates.
+        beta2 (float): The exponential decay rate for the second moment
+        estimates.
         epsilon (float): A small constant for numerical stability.
 
     Returns:
         Tuple[
             Callable[[Dict], Tuple[Dict, Dict]],
-            Callable[[Dict, Dict, Tuple[Dict, Dict]], Tuple[Dict, Tuple[Dict, Dict]]]
+            Callable[
+                [Dict, Dict, Tuple[Dict, Dict]],
+                Tuple[Dict, Tuple[Dict, Dict]]
+            ]
         ]: A tuple containing the initialization and update functions for Adam.
     """
     def init(params: Dict) -> Tuple[Dict, Dict]:
@@ -55,11 +63,24 @@ def adam(
         grads: Dict,
         state: Tuple[Dict, Dict]
     ) -> Tuple[Dict, Tuple[Dict, Dict]]:
+        def update_m(m, g):
+            return beta1 * m + (1 - beta1) * g
+
+        def update_v(v, g):
+            return beta2 * v + (1 - beta2) * jnp.square(g)
+
         m, v = state
-        m = jax.tree_multimap(lambda m, g: beta1 * m + (1 - beta1) * g, m, grads)
-        v = jax.tree_multimap(lambda v, g: beta2 * v + (1 - beta2) * jnp.square(g), v, grads)
-        m_hat = jax.tree_map(lambda m: m / (1 - beta1), m)
-        v_hat = jax.tree_map(lambda v: v / (1 - beta2), v)
+        m = jax.tree_multimap(update_m, m, grads)
+        v = jax.tree_multimap(update_v, v, grads)
+
+        def m_hat_func(m):
+            return m / (1 - beta1)
+
+        def v_hat_func(v):
+            return v / (1 - beta2)
+
+        m_hat = jax.tree_map(m_hat_func, m)
+        v_hat = jax.tree_map(v_hat_func, v)
         params = jax.tree_multimap(
             lambda p, m, v: p - learning_rate * m / (jnp.sqrt(v) + epsilon),
             params, m_hat, v_hat
