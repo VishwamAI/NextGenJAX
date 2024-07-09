@@ -69,7 +69,9 @@ def train_model(
     learning_rate: float,
     optimizer: str,
     loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float]
-) -> Tuple[train_state.TrainState, Dict[str, float]]:
+) -> Tuple[
+    train_state.TrainState, Dict[str, float]
+]:
     """
     Trains the model.
 
