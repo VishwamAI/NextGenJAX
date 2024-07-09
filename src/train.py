@@ -85,8 +85,8 @@ def train_model(
         compute the loss given the model's predictions and the true labels.
 
     Returns:
-        Tuple[train_state.TrainState, Dict[str, float]]: The final training state
-        and metrics.
+        Tuple[train_state.TrainState, Dict[str, float]]: The final training
+        state and metrics.
     """
     rng = jax.random.PRNGKey(0)
     state = create_train_state(rng, model, learning_rate, optimizer)
