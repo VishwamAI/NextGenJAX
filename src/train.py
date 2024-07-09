@@ -15,8 +15,10 @@ def create_train_state(rng: jax.random.PRNGKey, model: NextGenModel, learning_ra
         tx = adam(learning_rate)
     elif optimizer == 'rmsprop':
         tx = rmsprop(learning_rate)
-    else:
+    elif optimizer == 'custom':
         tx = custom_optimizer(learning_rate)
+    else:
+        raise ValueError(f"Unsupported optimizer: {optimizer}")
     return train_state.TrainState.create(apply_fn=model.apply, params=params, tx=tx)
 
 @jit
