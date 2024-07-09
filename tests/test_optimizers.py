@@ -1,6 +1,6 @@
 import jax.numpy as jnp
 import pytest
-from NextGenJAX.src.optimizers import sgd, adam, rmsprop, custom_optimizer
+from src.optimizers import sgd, adam, rmsprop, custom_optimizer
 
 
 def test_sgd():
