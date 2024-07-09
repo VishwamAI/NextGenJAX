@@ -15,7 +15,7 @@ def sgd(learning_rate: float) -> Callable[[Dict, Dict], Dict]:
         using SGD.
     """
     def update(params: Dict, grads: Dict) -> Dict:
-        return jax.tree_multimap(
+        return jax.tree_map(
             lambda p, g: p - learning_rate * g, params, grads
         )
     return update
@@ -70,8 +70,8 @@ def adam(
             return beta2 * v + (1 - beta2) * jnp.square(g)
 
         m, v = state
-        m = jax.tree_multimap(update_m, m, grads)
-        v = jax.tree_multimap(update_v, v, grads)
+        m = jax.tree_map(update_m, m, grads)
+        v = jax.tree_map(update_v, v, grads)
 
         def m_hat_func(m):
             return m / (1 - beta1)
@@ -81,7 +81,7 @@ def adam(
 
         m_hat = jax.tree_map(m_hat_func, m)
         v_hat = jax.tree_map(v_hat_func, v)
-        params = jax.tree_multimap(
+        params = jax.tree_map(
             lambda p, m, v: p - learning_rate * m / (jnp.sqrt(v) + epsilon),
             params, m_hat, v_hat
         )
@@ -124,11 +124,11 @@ def rmsprop(
         state: Dict
     ) -> Tuple[Dict, Dict]:
         avg_sq_grad = state
-        avg_sq_grad = jax.tree_multimap(
+        avg_sq_grad = jax.tree_map(
             lambda avg, g: decay * avg + (1 - decay) * jnp.square(g),
             avg_sq_grad, grads
         )
-        params = jax.tree_multimap(
+        params = jax.tree_map(
             lambda p, avg, g: p - learning_rate * g / (
                 jnp.sqrt(avg) + epsilon
             ),
@@ -152,7 +152,7 @@ def custom_optimizer(learning_rate: float) -> Callable[[Dict, Dict], Dict]:
     """
     def update(params: Dict, grads: Dict) -> Dict:
         # Example of a custom optimization algorithm
-        return jax.tree_multimap(
+        return jax.tree_map(
             lambda p, g: p - learning_rate * jnp.sin(g), params, grads
         )
     return update
