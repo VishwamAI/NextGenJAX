@@ -9,7 +9,8 @@ def test_create_train_state():
     model = NextGenModel(
         layers=[{'type': 'dense', 'features': 10, 'activation': jnp.tanh}]
     )
-    print(f"Type of model.layers in test_create_train_state: {type(model.layers)}")
+    print(f"Type of model.layers in test_create_train_state: "
+          f"{type(model.layers)}")
     rng = jax.random.PRNGKey(0)
     learning_rate = 0.01
     optimizer = 'sgd'
