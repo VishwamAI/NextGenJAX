@@ -9,6 +9,7 @@ def test_create_train_state():
     model = NextGenModel(
         layers=[{'type': 'dense', 'features': 10, 'activation': jnp.tanh}]
     )
+    print(f"Type of model.layers in test_create_train_state: {type(model.layers)}")
     rng = jax.random.PRNGKey(0)
     learning_rate = 0.01
     optimizer = 'sgd'
@@ -23,6 +24,7 @@ def test_train_step():
     model = NextGenModel(
         layers=[{'type': 'dense', 'features': 10, 'activation': jnp.tanh}]
     )
+    print(f"Type of model.layers in test_train_step: {type(model.layers)}")
     rng = jax.random.PRNGKey(0)
     learning_rate = 0.01
     optimizer = 'sgd'
@@ -43,6 +45,7 @@ def test_train_model():
     model = NextGenModel(
         layers=[{'type': 'dense', 'features': 10, 'activation': jnp.tanh}]
     )
+    print(f"Type of model.layers in test_train_model: {type(model.layers)}")
     learning_rate = 0.01
     optimizer = 'sgd'
     dataset = [
