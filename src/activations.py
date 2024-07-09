@@ -1,5 +1,6 @@
 import jax.numpy as jnp
 
+
 def relu(x: jnp.ndarray) -> jnp.ndarray:
     return jnp.maximum(0, x)
 

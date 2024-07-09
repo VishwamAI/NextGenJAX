@@ -1,6 +1,6 @@
 import jax
 import jax.numpy as jnp
-from jax import grad, jit, value_and_grad
+from jax import jit, value_and_grad
 from flax.training import train_state
 from typing import Any, Callable, Dict, Tuple
 from .model import NextGenModel
@@ -40,10 +40,12 @@ def train_step(
     Args:
         state (train_state.TrainState): The current training state.
         batch (Dict[str, jnp.ndarray]): A batch of training data.
-        loss_fn (Callable[[jnp.ndarray, jnp.ndarray], float]): A function to compute the loss given the model's predictions and the true labels.
+        loss_fn (Callable[[jnp.ndarray, jnp.ndarray], float]): A function to
+        compute the loss given the model's predictions and the true labels.
 
     Returns:
-        Tuple[train_state.TrainState, float]: The updated training state and the computed loss.
+        Tuple[train_state.TrainState, float]: The updated training state and
+        the computed loss.
     """
     def compute_loss(params):
         logits = state.apply_fn({'params': params}, batch['image'])
@@ -73,7 +75,8 @@ def train_model(
         num_epochs (int): The number of epochs to train for.
         learning_rate (float): The learning rate for the optimizer.
         optimizer (str): The name of the optimizer to use.
-        loss_fn (Callable[[jnp.ndarray, jnp.ndarray], float]): A function to compute the loss given the model's predictions and the true labels.
+        loss_fn (Callable[[jnp.ndarray, jnp.ndarray], float]): A function to
+        compute the loss given the model's predictions and the true labels.
     """
     rng = jax.random.PRNGKey(0)
     state = create_train_state(rng, model, learning_rate, optimizer)
