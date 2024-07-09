@@ -1,8 +1,8 @@
 import jax
 import jax.numpy as jnp
 import pytest
-from src.train import create_train_state, train_step, train_model
-from src.model import NextGenModel
+from NextGenJAX.src.train import create_train_state, train_step, train_model
+from NextGenJAX.src.model import NextGenModel
 
 
 def test_create_train_state():
