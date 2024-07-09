@@ -1,8 +1,7 @@
-import jax
-import jax.numpy as jnp
-from jax import random
 from flax import linen as nn
+import jax.numpy as jnp
 from typing import Callable, Optional
+
 
 class DenseLayer(nn.Module):
     features: int
@@ -17,6 +16,7 @@ class DenseLayer(nn.Module):
             x = self.activation(x)
         return x
 
+
 class ConvolutionalLayer(nn.Module):
     features: int
     kernel_size: tuple
@@ -25,7 +25,12 @@ class ConvolutionalLayer(nn.Module):
     activation: Optional[Callable[[jnp.ndarray], jnp.ndarray]] = None
 
     def setup(self):
-        self.conv = nn.Conv(features=self.features, kernel_size=self.kernel_size, strides=self.strides, padding=self.padding)
+        self.conv = nn.Conv(
+            features=self.features,
+            kernel_size=self.kernel_size,
+            strides=self.strides,
+            padding=self.padding
+        )
 
     def __call__(self, x: jnp.ndarray) -> jnp.ndarray:
         x = self.conv(x)
