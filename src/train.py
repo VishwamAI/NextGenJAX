@@ -69,7 +69,7 @@ def train_model(
     learning_rate: float,
     optimizer: str,
     loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float]
-):
+) -> Tuple[train_state.TrainState, Dict[str, float]]:
     """
     Trains the model.
 
@@ -81,6 +81,9 @@ def train_model(
         optimizer (str): The name of the optimizer to use.
         loss_fn (Callable[[jnp.ndarray, jnp.ndarray], float]): A function to
         compute the loss given the model's predictions and the true labels.
+
+    Returns:
+        Tuple[train_state.TrainState, Dict[str, float]]: The final training state and metrics.
     """
     rng = jax.random.PRNGKey(0)
     state = create_train_state(rng, model, learning_rate, optimizer)
@@ -89,3 +92,6 @@ def train_model(
         for batch in train_dataset:
             state, loss = train_step(state, batch, loss_fn)
         print(f'Epoch {epoch + 1}, Loss: {loss}')
+
+    metrics = {'loss': loss}
+    return state, metrics
