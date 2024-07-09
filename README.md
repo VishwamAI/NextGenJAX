@@ -65,7 +65,16 @@ We welcome contributions to NextGenJAX! If you would like to contribute, please 
 2. Create a new branch (`git checkout -b feature/your-feature`)
 3. Make your changes and commit them (`git commit -am 'Add new feature'`)
 4. Push to the branch (`git push origin feature/your-feature`)
-5. Create a new pull request
+5. Create a new pull request using the [Pull Request Template](.github/PULL_REQUEST_TEMPLATE.md)
+
+For more detailed guidelines, please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file.
+
+## Reporting Issues
+If you encounter any issues or have suggestions for improvements, please open an issue in the repository. Use the appropriate issue template:
+- [Bug Report](.github/ISSUE_TEMPLATE/bug_report.md)
+- [Feature Request](.github/ISSUE_TEMPLATE/feature_request.md)
+
+Provide as much detail as possible to help us understand and address the problem.
 
 ## License
 NextGenJAX is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
