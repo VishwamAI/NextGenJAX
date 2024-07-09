@@ -46,9 +46,6 @@ def test_train_model():
     rng = jax.random.PRNGKey(0)
     learning_rate = 0.01
     optimizer = 'sgd'
-    state = create_train_state(
-        rng, model, learning_rate, optimizer
-    )
     dataset = [
         {'image': jnp.ones((1, 28, 28, 1)), 'label': jnp.ones((1, 10))}
         for _ in range(10)
@@ -58,7 +55,8 @@ def test_train_model():
         return jnp.mean((logits - labels) ** 2)
 
     final_state, metrics = train_model(
-        model, dataset, num_epochs=1, learning_rate=learning_rate, optimizer=optimizer, loss_fn=loss_fn
+        model, dataset, num_epochs=1, learning_rate=learning_rate,
+        optimizer=optimizer, loss_fn=loss_fn
     )
     assert final_state.params is not None
     assert 'loss' in metrics
