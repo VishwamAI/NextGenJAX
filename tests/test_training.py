@@ -43,7 +43,6 @@ def test_train_model():
     model = NextGenModel(
         layers=[{'type': 'dense', 'features': 10, 'activation': jnp.tanh}]
     )
-    rng = jax.random.PRNGKey(0)
     learning_rate = 0.01
     optimizer = 'sgd'
     dataset = [
