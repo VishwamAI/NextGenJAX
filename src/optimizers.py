@@ -103,14 +103,16 @@ def rmsprop(
 
     Args:
         learning_rate (float): The learning rate for the optimizer.
-        decay (float): The decay rate for the moving average of squared gradients.
+        decay (float): The decay rate for the moving average of squared
+            gradients.
         epsilon (float): A small constant for numerical stability.
 
     Returns:
         Tuple[
             Callable[[Dict], Dict],
             Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
-        ]: A tuple containing the initialization and update functions for RMSprop.
+        ]: A tuple containing the initialization and update functions for
+            RMSprop.
     """
     def init(params: Dict) -> Dict:
         avg_sq_grad = jax.tree_map(jnp.zeros_like, params)
