@@ -6,7 +6,13 @@ from typing import Any, Callable, Dict, Tuple
 from .model import NextGenModel
 from .optimizers import sgd, adam, rmsprop, custom_optimizer
 
-def create_train_state(rng: jax.random.PRNGKey, model: NextGenModel, learning_rate: float, optimizer: str) -> train_state.TrainState:
+
+def create_train_state(
+    rng: jax.random.PRNGKey,
+    model: NextGenModel,
+    learning_rate: float,
+    optimizer: str
+) -> train_state.TrainState:
     """Creates initial training state."""
     params = model.init(rng, jnp.ones([1, 28, 28, 1]))['params']
     if optimizer == 'sgd':
@@ -21,8 +27,13 @@ def create_train_state(rng: jax.random.PRNGKey, model: NextGenModel, learning_ra
         raise ValueError(f"Unsupported optimizer: {optimizer}")
     return train_state.TrainState.create(apply_fn=model.apply, params=params, tx=tx)
 
+
 @jit
-def train_step(state: train_state.TrainState, batch: Dict[str, jnp.ndarray], loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float]) -> Tuple[train_state.TrainState, float]:
+def train_step(
+    state: train_state.TrainState,
+    batch: Dict[str, jnp.ndarray],
+    loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float]
+) -> Tuple[train_state.TrainState, float]:
     """
     Performs a single training step.
 
@@ -44,7 +55,15 @@ def train_step(state: train_state.TrainState, batch: Dict[str, jnp.ndarray], los
     state = state.apply_gradients(grads=grads)
     return state, loss
 
-def train_model(model: NextGenModel, train_dataset: Any, num_epochs: int, learning_rate: float, optimizer: str, loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float]):
+
+def train_model(
+    model: NextGenModel,
+    train_dataset: Any,
+    num_epochs: int,
+    learning_rate: float,
+    optimizer: str,
+    loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float]
+):
     """
     Trains the model.
 
