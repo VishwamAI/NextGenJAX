@@ -3,7 +3,6 @@ import jax.numpy as jnp
 import pytest
 from src.train import create_train_state, train_step, train_model
 from src.model import NextGenModel
-from src.optimizers import sgd
 
 def test_create_train_state():
     model = NextGenModel(layers=[{'type': 'dense', 'features': 10, 'activation': jnp.tanh}])
@@ -23,7 +22,8 @@ def test_train_step():
     optimizer = 'sgd'
     state = create_train_state(rng, model, input_shape, learning_rate, optimizer)
     batch = {'x': jnp.ones((1, 5)), 'y': jnp.ones((1, 10))}
-    loss_fn = lambda logits, labels: jnp.mean((logits - labels) ** 2)
+    def loss_fn(logits, labels):
+        return jnp.mean((logits - labels) ** 2)
     new_state, loss = train_step(state, batch, loss_fn)
     assert new_state.params is not None
     assert loss >= 0
@@ -36,7 +36,8 @@ def test_train_model():
     optimizer = 'sgd'
     state = create_train_state(rng, model, input_shape, learning_rate, optimizer)
     dataset = [{'x': jnp.ones((1, 5)), 'y': jnp.ones((1, 10))} for _ in range(10)]
-    loss_fn = lambda logits, labels: jnp.mean((logits - labels) ** 2)
+    def loss_fn(logits, labels):
+        return jnp.mean((logits - labels) ** 2)
     final_state, metrics = train_model(state, dataset, loss_fn, num_epochs=1)
     assert final_state.params is not None
     assert 'loss' in metrics
