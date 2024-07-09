@@ -4,6 +4,7 @@ import pytest
 from src.layers import DenseLayer, ConvolutionalLayer
 from src.custom_layers import CustomLayer
 
+
 @pytest.mark.parametrize("features, input_shape, activation", [
     (10, (1, 5), jnp.tanh),
     (20, (2, 10), jnp.relu),
