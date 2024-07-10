@@ -5,17 +5,16 @@ from flax.training import train_state
 from typing import Any, Callable, Dict, Tuple
 from .model import NextGenModel
 
-# Removed unused imports
-# from .optimizers import sgd, adam, rmsprop, custom_optimizer
-
+# Type alias for optimizer
+OptimizerType = Tuple[
+    Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
+]
 
 def create_train_state(
     rng: jax.random.PRNGKey,
     model: NextGenModel,
     learning_rate: float,
-    optimizer: Tuple[
-        Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
-    ],
+    optimizer: OptimizerType,
 ) -> train_state.TrainState:
     """
     Creates initial training state.
@@ -24,7 +23,7 @@ def create_train_state(
         rng (jax.random.PRNGKey): The random number generator key.
         model (NextGenModel): The model to be trained.
         learning_rate (float): The learning rate for the optimizer.
-        optimizer (Tuple[Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]]): The optimizer to use.
+        optimizer (OptimizerType): The optimizer to use.
 
     Returns:
         train_state.TrainState: The initial training state.
@@ -74,9 +73,7 @@ def train_model(
     train_dataset: Any,
     num_epochs: int,
     learning_rate: float,
-    optimizer: Tuple[
-        Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
-    ],
+    optimizer: OptimizerType,
     loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float],
 ) -> Tuple[train_state.TrainState, Dict[str, float]]:
     """
@@ -87,7 +84,7 @@ def train_model(
         train_dataset (Any): The training dataset.
         num_epochs (int): The number of epochs to train for.
         learning_rate (float): The learning rate for the optimizer.
-        optimizer (Tuple[Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]]): The optimizer to use.
+        optimizer (OptimizerType): The optimizer to use.
         loss_fn (Callable[[jnp.ndarray, jnp.ndarray], float]): A function to
         compute the loss given the model's predictions and the true labels.
 
