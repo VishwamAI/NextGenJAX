@@ -58,7 +58,3 @@ class NextGenModel(nn.Module):
         for layer in self.model_layers:
             x = layer(x)
         return x
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.setup()
