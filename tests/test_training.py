@@ -3,6 +3,7 @@ import jax.numpy as jnp
 import pytest
 from src.train import create_train_state, train_step, train_model
 from src.model import NextGenModel
+from src.optimizers import sgd, adam, rmsprop, custom_optimizer
 
 
 def test_create_train_state():
@@ -11,7 +12,7 @@ def test_create_train_state():
     print(f"Type of model.layers in test_create_train_state: {type(layers)}")
     rng = jax.random.PRNGKey(0)
     learning_rate = 0.01
-    optimizer = 'sgd'
+    optimizer = sgd(learning_rate)
     state = create_train_state(
         rng, model, learning_rate, optimizer
     )
@@ -25,7 +26,7 @@ def test_train_step():
     print(f"Type of model.layers in test_train_step: {type(layers)}")
     rng = jax.random.PRNGKey(0)
     learning_rate = 0.01
-    optimizer = 'sgd'
+    optimizer = sgd(learning_rate)
     state = create_train_state(
         rng, model, learning_rate, optimizer
     )
@@ -44,7 +45,7 @@ def test_train_model():
     model = NextGenModel(layers=layers)
     print(f"Type of model.layers in test_train_model: {type(layers)}")
     learning_rate = 0.01
-    optimizer = 'sgd'
+    optimizer = sgd(learning_rate)
     dataset = [
         {'image': jnp.ones((1, 28, 28, 1)), 'label': jnp.ones((1, 10))}
         for _ in range(10)
