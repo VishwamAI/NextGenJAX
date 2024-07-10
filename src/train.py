@@ -10,6 +10,7 @@ OptimizerType = Tuple[
     Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
 ]
 
+
 def create_train_state(
     rng: jax.random.PRNGKey,
     model: NextGenModel,
