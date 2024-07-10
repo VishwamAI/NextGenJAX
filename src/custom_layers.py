@@ -13,6 +13,7 @@ class CustomLayer(nn.Module):
         activation (Optional[Callable[[jnp.ndarray], jnp.ndarray]]): An
         optional activation function to apply after the dense layer.
     """
+
     features: int
     activation: Optional[Callable[[jnp.ndarray], jnp.ndarray]] = None
 

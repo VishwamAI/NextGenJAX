@@ -14,9 +14,8 @@ def create_train_state(
     model: NextGenModel,
     learning_rate: float,
     optimizer: Tuple[
-        Callable[[Dict], Dict],
-        Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
-    ]
+        Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
+    ],
 ) -> train_state.TrainState:
     """
     Creates initial training state.
@@ -30,12 +29,12 @@ def create_train_state(
     Returns:
         train_state.TrainState: The initial training state.
     """
-    params = model.init(rng, jnp.ones([1, 28, 28, 1]))['params']
+    params = model.init(rng, jnp.ones([1, 28, 28, 1]))["params"]
     init_fn, update_fn = optimizer
     return train_state.TrainState.create(
         apply_fn=model.apply,
         params=params,
-        tx=init_fn(params)  # Pass the initialized parameters to the optimizer
+        tx=init_fn(params),  # Pass the initialized parameters to the optimizer
     )
 
 
@@ -43,7 +42,7 @@ def create_train_state(
 def train_step(
     state: train_state.TrainState,
     batch: Dict[str, jnp.ndarray],
-    loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float]
+    loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float],
 ) -> Tuple[train_state.TrainState, float]:
     """
     Performs a single training step.
@@ -58,9 +57,10 @@ def train_step(
         Tuple[train_state.TrainState, float]: The updated training state and
         the computed loss.
     """
+
     def compute_loss(params):
-        logits = state.apply_fn({'params': params}, batch['image'])
-        loss = loss_fn(logits, batch['label'])
+        logits = state.apply_fn({"params": params}, batch["image"])
+        loss = loss_fn(logits, batch["label"])
         return loss
 
     grad_fn = value_and_grad(compute_loss)
@@ -75,13 +75,10 @@ def train_model(
     num_epochs: int,
     learning_rate: float,
     optimizer: Tuple[
-        Callable[[Dict], Dict],
-        Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
+        Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
     ],
-    loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float]
-) -> Tuple[
-    train_state.TrainState, Dict[str, float]
-]:
+    loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float],
+) -> Tuple[train_state.TrainState, Dict[str, float]]:
     """
     Trains the model.
 
@@ -104,7 +101,7 @@ def train_model(
     for epoch in range(num_epochs):
         for batch in train_dataset:
             state, loss = train_step(state, batch, loss_fn)
-        print(f'Epoch {epoch + 1}, Loss: {loss}')
+        print(f"Epoch {epoch + 1}, Loss: {loss}")
 
-    metrics = {'loss': loss}
+    metrics = {"loss": loss}
     return state, metrics

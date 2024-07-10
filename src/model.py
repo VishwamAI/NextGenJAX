@@ -11,6 +11,7 @@ class NextGenModel(nn.Module):
     Methods:
         __call__(x): Applies the model layers to the input.
     """
+
     layers: list
 
     @nn.compact
@@ -25,24 +26,24 @@ class NextGenModel(nn.Module):
             jnp.ndarray: The output array after applying the model layers.
         """
         for layer_config in self.layers:
-            layer_type = layer_config['type']
-            if layer_type == 'dense':
+            layer_type = layer_config["type"]
+            if layer_type == "dense":
                 x = DenseLayer(
-                    features=layer_config['features'],
-                    activation=layer_config.get('activation')
+                    features=layer_config["features"],
+                    activation=layer_config.get("activation"),
                 )(x)
-            elif layer_type == 'conv':
+            elif layer_type == "conv":
                 x = ConvolutionalLayer(
-                    features=layer_config['features'],
-                    kernel_size=layer_config['kernel_size'],
-                    strides=layer_config.get('strides', (1, 1)),
-                    padding=layer_config.get('padding', 'SAME'),
-                    activation=layer_config.get('activation')
+                    features=layer_config["features"],
+                    kernel_size=layer_config["kernel_size"],
+                    strides=layer_config.get("strides", (1, 1)),
+                    padding=layer_config.get("padding", "SAME"),
+                    activation=layer_config.get("activation"),
                 )(x)
-            elif layer_type == 'custom':
+            elif layer_type == "custom":
                 x = CustomLayer(
-                    features=layer_config['features'],
-                    activation=layer_config.get('activation')
+                    features=layer_config["features"],
+                    activation=layer_config.get("activation"),
                 )(x)
             else:
                 raise ValueError(f"Unsupported layer type: {layer_type}")

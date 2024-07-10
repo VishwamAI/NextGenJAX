@@ -21,7 +21,7 @@ class ConvolutionalLayer(nn.Module):
     features: int
     kernel_size: tuple
     strides: tuple = (1, 1)
-    padding: str = 'SAME'
+    padding: str = "SAME"
     activation: Optional[Callable[[jnp.ndarray], jnp.ndarray]] = None
 
     def setup(self):
@@ -29,7 +29,7 @@ class ConvolutionalLayer(nn.Module):
             features=self.features,
             kernel_size=self.kernel_size,
             strides=self.strides,
-            padding=self.padding
+            padding=self.padding,
         )
 
     def __call__(self, x: jnp.ndarray) -> jnp.ndarray:
