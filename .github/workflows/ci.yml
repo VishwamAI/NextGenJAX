@@ -39,4 +39,5 @@ jobs:
 
     - name: Run tests
       run: |
-        pytest
+        pip install pytest
+        pytest src tests
