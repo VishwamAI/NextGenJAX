@@ -6,8 +6,8 @@ from src.model import NextGenModel
 
 
 def test_create_train_state():
-    model = NextGenModel()
     layers = [{'type': 'dense', 'features': 10, 'activation': jnp.tanh}]
+    model = NextGenModel(layers=layers)
     print(f"Type of model.layers in test_create_train_state: {type(layers)}")
     rng = jax.random.PRNGKey(0)
     learning_rate = 0.01
@@ -20,8 +20,8 @@ def test_create_train_state():
 
 
 def test_train_step():
-    model = NextGenModel()
     layers = [{'type': 'dense', 'features': 10, 'activation': jnp.tanh}]
+    model = NextGenModel(layers=layers)
     print(f"Type of model.layers in test_train_step: {type(layers)}")
     rng = jax.random.PRNGKey(0)
     learning_rate = 0.01
@@ -40,8 +40,8 @@ def test_train_step():
 
 
 def test_train_model():
-    model = NextGenModel()
     layers = [{'type': 'dense', 'features': 10, 'activation': jnp.tanh}]
+    model = NextGenModel(layers=layers)
     print(f"Type of model.layers in test_train_model: {type(layers)}")
     learning_rate = 0.01
     optimizer = 'sgd'
