@@ -2,7 +2,34 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
+import jax
+import jax.numpy as jnp
 from typing import Any, Callable, Dict, Tuple
+
+def torch_to_jax(tensor: torch.Tensor) -> jnp.ndarray:
+    """
+    Converts a PyTorch tensor to a JAX array.
+
+    Args:
+        tensor (torch.Tensor): The PyTorch tensor to convert.
+
+    Returns:
+        jnp.ndarray: The converted JAX array.
+    """
+    return jnp.array(tensor.cpu().numpy())
+
+def jax_to_torch(array: jnp.ndarray) -> torch.Tensor:
+    """
+    Converts a JAX array to a PyTorch tensor.
+
+    Args:
+        array (jnp.ndarray): The JAX array to convert.
+
+    Returns:
+        torch.Tensor: The converted PyTorch tensor.
+    """
+    return torch.tensor(array)
+
 from .model import SimpleModel
 
 def create_train_state(
