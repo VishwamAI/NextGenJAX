@@ -33,8 +33,7 @@ def create_train_state(
     elif optimizer == 'rmsprop':
         init_fn, update_fn = rmsprop(learning_rate)
     elif optimizer == 'custom':
-        update_fn = custom_optimizer(learning_rate)
-        init_fn = lambda params: params  # Custom optimizer does not have an init function
+        init_fn = custom_optimizer(learning_rate)
     else:
         raise ValueError(f"Unsupported optimizer: {optimizer}")
     return train_state.TrainState.create(
