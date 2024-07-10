@@ -7,7 +7,7 @@ from .model import NextGenModel
 
 # Type alias for optimizer
 OptimizerType = Tuple[
-    Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
+    Callable[[Dict], Any], Callable[[Dict, Dict, Any], Tuple[Dict, Any]]
 ]
 
 
@@ -31,10 +31,11 @@ def create_train_state(
     """
     params = model.init(rng, jnp.ones([1, 28, 28, 1]))["params"]
     init_fn, update_fn = optimizer
+    opt_state = init_fn(params)  # Initialize the optimizer state
     return train_state.TrainState.create(
         apply_fn=model.apply,
         params=params,
-        tx=init_fn(params),  # Pass the initialized parameters to the optimizer
+        tx=opt_state,  # Pass the initialized optimizer state
     )
 
 
