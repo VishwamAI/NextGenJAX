@@ -6,7 +6,10 @@ from typing import Callable, Tuple, Dict
 
 def sgd(
     learning_rate: float,
-) -> Tuple[Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]]:
+) -> Tuple[
+    Callable[[Dict], Dict],
+    Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
+]:
     """
     Stochastic Gradient Descent (SGD) optimizer.
 
@@ -102,7 +105,10 @@ def adam(
 
 def rmsprop(
     learning_rate: float, decay: float = 0.9, epsilon: float = 1e-8
-) -> Tuple[Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]]:
+) -> Tuple[
+    Callable[[Dict], Dict],
+    Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
+]:
     """
     RMSprop optimizer.
 
@@ -127,13 +133,12 @@ def rmsprop(
     def update(params: Dict, grads: Dict, state: Dict) -> Tuple[Dict, Dict]:
         avg_sq_grad = state
         avg_sq_grad = jax.tree_util.tree_map(
-            lambda avg, g: decay * avg + (1 - decay) * jnp.square(g), avg_sq_grad, grads
+            lambda avg, g: decay * avg + (1 - decay) * jnp.square(g),
+            avg_sq_grad, grads
         )
         params = jax.tree_util.tree_map(
             lambda p, avg, g: p - learning_rate * g / (jnp.sqrt(avg) + epsilon),
-            params,
-            avg_sq_grad,
-            grads,
+            params, avg_sq_grad, grads
         )
         return params, avg_sq_grad
 
@@ -142,7 +147,10 @@ def rmsprop(
 
 def custom_optimizer(
     learning_rate: float,
-) -> Tuple[Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]]:
+) -> Tuple[
+    Callable[[Dict], Dict],
+    Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
+]:
     """
     Custom optimizer example.
 
