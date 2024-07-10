@@ -80,11 +80,18 @@ def train_model(
     Returns:
         Tuple[Dict[str, Any], Dict[str, float]]: The final training state and metrics.
     """
+    # Use DataParallel for multi-GPU training
+    if torch.cuda.device_count() > 1:
+        model = nn.DataParallel(model)
+
+    model = model.to('cuda' if torch.cuda.is_available() else 'cpu')
+
     state = create_train_state(model, learning_rate, optimizer_class)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
     for epoch in range(num_epochs):
         for batch in train_loader:
+            batch = {k: v.to('cuda' if torch.cuda.is_available() else 'cpu') for k, v in batch.items()}
             state, loss = train_step(state, batch, loss_fn)
         print(f"Epoch {epoch + 1}, Loss: {loss}")
 
