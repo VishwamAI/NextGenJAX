@@ -20,7 +20,7 @@ def create_train_state(
     rng: jax.random.PRNGKey,
     model: NextGenModel,
     learning_rate: float,
-    optimizer: OptimizerType,
+    optimizer: Optimizer,
 ) -> train_state.TrainState:
     """
     Creates initial training state.
@@ -29,16 +29,15 @@ def create_train_state(
         rng (jax.random.PRNGKey): The random number generator key.
         model (NextGenModel): The model to be trained.
         learning_rate (float): The learning rate for the optimizer.
-        optimizer (OptimizerType): The optimizer to use.
+        optimizer (Optimizer): The optimizer to use.
 
     Returns:
         train_state.TrainState: The initial training state.
     """
     params = model.init(rng, jnp.ones([1, 28, 28, 1]))["params"]
-    init_fn, update_fn = optimizer
-    opt_state = init_fn(params)  # Initialize the optimizer state
+    opt_state = optimizer.init(params)  # Initialize the optimizer state
 
-    optimizer_obj = Optimizer(init_fn, update_fn, opt_state)
+    optimizer_obj = Optimizer(optimizer.init, optimizer.update, opt_state)
 
     return train_state.TrainState.create(
         apply_fn=model.apply,
@@ -84,7 +83,7 @@ def train_model(
     train_dataset: Any,
     num_epochs: int,
     learning_rate: float,
-    optimizer: OptimizerType,
+    optimizer: Optimizer,
     loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float],
 ) -> Tuple[train_state.TrainState, Dict[str, float]]:
     """
@@ -95,7 +94,7 @@ def train_model(
         train_dataset (Any): The training dataset.
         num_epochs (int): The number of epochs to train for.
         learning_rate (float): The learning rate for the optimizer.
-        optimizer (OptimizerType): The optimizer to use.
+        optimizer (Optimizer): The optimizer to use.
         loss_fn (Callable[[jnp.ndarray, jnp.ndarray], float]): A function to
         compute the loss given the model's predictions and the true labels.
 
