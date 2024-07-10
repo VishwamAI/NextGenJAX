@@ -32,9 +32,9 @@ def create_train_state(
         train_state.TrainState: The initial training state.
     """
     rngs = jax.random.split(rng, jax.local_device_count())
-    params = jax.pmap(model.init, axis_name="batch")(
-        rngs, jnp.ones([1, 28, 28, 1])
-    )["params"]
+    params = jax.pmap(model.init, axis_name="batch")(rngs, jnp.ones([1, 28, 28, 1]))[
+        "params"
+    ]
     opt_state = jax.pmap(optimizer[0], axis_name="batch")(params)
 
     return train_state.TrainState.create(
