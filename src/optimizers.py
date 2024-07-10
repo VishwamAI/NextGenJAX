@@ -20,7 +20,8 @@ def sgd(
         Tuple[
             Callable[[Dict], Dict],
             Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
-        ]: A tuple containing the initialization and update functions for SGD.
+        ]: A tuple containing the initialization and update functions for
+        SGD.
     """
     def init(params: Dict) -> Dict:
         return params
@@ -125,7 +126,7 @@ def rmsprop(
             Callable[[Dict], Dict],
             Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
         ]: A tuple containing the initialization and update functions for
-            RMSprop.
+        RMSprop.
     """
     def init(params: Dict) -> Dict:
         avg_sq_grad = jax.tree_util.tree_map(jnp.zeros_like, params)
