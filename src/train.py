@@ -10,7 +10,6 @@ from .optimizers import sgd, adam, rmsprop, custom_optimizer
 def create_train_state(
     rng: jax.random.PRNGKey,
     model: NextGenModel,
-    layers: list,
     learning_rate: float,
     optimizer: str
 ) -> train_state.TrainState:
@@ -20,14 +19,13 @@ def create_train_state(
     Args:
         rng (jax.random.PRNGKey): The random number generator key.
         model (NextGenModel): The model to be trained.
-        layers (list): A list of layer configurations for the model.
         learning_rate (float): The learning rate for the optimizer.
         optimizer (str): The name of the optimizer to use.
 
     Returns:
         train_state.TrainState: The initial training state.
     """
-    params = model.init(rng, jnp.ones([1, 28, 28, 1]), layers=layers)['params']
+    params = model.init(rng, jnp.ones([1, 28, 28, 1]))['params']
     if optimizer == 'sgd':
         tx = sgd(learning_rate)
     elif optimizer == 'adam':
@@ -77,7 +75,6 @@ def train_step(
 
 def train_model(
     model: NextGenModel,
-    layers: list,
     train_dataset: Any,
     num_epochs: int,
     learning_rate: float,
@@ -91,7 +88,6 @@ def train_model(
 
     Args:
         model (NextGenModel): The model to be trained.
-        layers (list): A list of layer configurations for the model.
         train_dataset (Any): The training dataset.
         num_epochs (int): The number of epochs to train for.
         learning_rate (float): The learning rate for the optimizer.
@@ -104,7 +100,7 @@ def train_model(
         state and metrics.
     """
     rng = jax.random.PRNGKey(0)
-    state = create_train_state(rng, model, layers, learning_rate, optimizer)
+    state = create_train_state(rng, model, learning_rate, optimizer)
 
     for epoch in range(num_epochs):
         for batch in train_dataset:
