@@ -37,7 +37,12 @@ def test_convolutional_layer(features, kernel_size, input_shape, activation):
     x = jnp.ones(input_shape)
     params = layer.init(jax.random.PRNGKey(0), x)
     y = layer.apply(params, x)
-    assert y.shape == (input_shape[0], input_shape[1], input_shape[2], features)
+    assert y.shape == (
+        input_shape[0],
+        input_shape[1],
+        input_shape[2],
+        features,
+    )
 
 
 @pytest.mark.parametrize(
