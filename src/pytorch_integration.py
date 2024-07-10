@@ -62,6 +62,7 @@ def train_model(
     learning_rate: float,
     optimizer_class: Callable,
     loss_fn: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
+    batch_size: int = 32,
 ) -> Tuple[Dict[str, Any], Dict[str, float]]:
     """
     Trains the PyTorch model.
@@ -74,12 +75,13 @@ def train_model(
         optimizer_class (Callable): The optimizer class to use.
         loss_fn (Callable[[torch.Tensor, torch.Tensor], torch.Tensor]): A function to
         compute the loss given the model's predictions and the true labels.
+        batch_size (int): The batch size for training.
 
     Returns:
         Tuple[Dict[str, Any], Dict[str, float]]: The final training state and metrics.
     """
     state = create_train_state(model, learning_rate, optimizer_class)
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
     for epoch in range(num_epochs):
         for batch in train_loader:
@@ -88,3 +90,42 @@ def train_model(
 
     metrics = {"loss": loss}
     return state, metrics
+
+if __name__ == "__main__":
+    # Example usage
+    input_size = 1000
+    hidden_size = 512
+    output_size = 10
+    num_epochs = 10
+    learning_rate = 0.001
+    batch_size = 64
+
+    # Create a simple dataset for demonstration purposes
+    class SimpleDataset(torch.utils.data.Dataset):
+        def __init__(self, size):
+            self.size = size
+            self.inputs = torch.randint(0, input_size, (size, input_size))
+            self.labels = torch.randint(0, output_size, (size,))
+
+        def __len__(self):
+            return self.size
+
+        def __getitem__(self, idx):
+            return {"inputs": self.inputs[idx], "labels": self.labels[idx]}
+
+    train_dataset = SimpleDataset(1000)
+    model = SimpleModel(input_size, hidden_size, output_size)
+    optimizer_class = optim.Adam
+    loss_fn = nn.CrossEntropyLoss()
+
+    state, metrics = train_model(
+        model,
+        train_dataset,
+        num_epochs,
+        learning_rate,
+        optimizer_class,
+        loss_fn,
+        batch_size,
+    )
+
+    print("Training complete. Final metrics:", metrics)
