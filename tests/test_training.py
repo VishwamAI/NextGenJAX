@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 import pytest
-from src.train import create_train_state, train_step, train_model
+from src.train import create_train_state, train_step, train_model, Optimizer
 from src.model import NextGenModel
 from src.optimizers import sgd
 
@@ -14,7 +14,7 @@ def test_create_train_state():
     init_fn, update_fn = sgd(learning_rate)
     params = model.init(rng, jnp.ones([1, 28, 28, 1]))["params"]
     opt_state = init_fn(params)
-    optimizer = (init_fn, update_fn, opt_state)
+    optimizer = Optimizer(init_fn, update_fn, opt_state)
     state = create_train_state(rng, model, learning_rate, optimizer)
     assert state.params is not None
     assert state.tx is not None
@@ -28,7 +28,7 @@ def test_train_step():
     init_fn, update_fn = sgd(learning_rate)
     params = model.init(rng, jnp.ones([1, 28, 28, 1]))["params"]
     opt_state = init_fn(params)
-    optimizer = (init_fn, update_fn, opt_state)
+    optimizer = Optimizer(init_fn, update_fn, opt_state)
     state = create_train_state(rng, model, learning_rate, optimizer)
     batch = {"image": jnp.ones((1, 28, 28, 1)), "label": jnp.ones((1, 10))}
 
@@ -49,7 +49,7 @@ def test_train_model():
         jax.random.PRNGKey(0), jnp.ones([1, 28, 28, 1])
     )["params"]
     opt_state = init_fn(params)
-    optimizer = (init_fn, update_fn, opt_state)
+    optimizer = Optimizer(init_fn, update_fn, opt_state)
     dataset = [
         {"image": jnp.ones((1, 28, 28, 1)), "label": jnp.ones((1, 10))}
         for _ in range(10)
