@@ -11,7 +11,7 @@ def create_train_state(
     rng: jax.random.PRNGKey,
     model: NextGenModel,
     learning_rate: float,
-    optimizer: str
+    optimizer: Tuple[Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]]
 ) -> train_state.TrainState:
     """
     Creates initial training state.
@@ -20,22 +20,13 @@ def create_train_state(
         rng (jax.random.PRNGKey): The random number generator key.
         model (NextGenModel): The model to be trained.
         learning_rate (float): The learning rate for the optimizer.
-        optimizer (str): The name of the optimizer to use.
+        optimizer (Tuple[Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]]): The optimizer to use.
 
     Returns:
         train_state.TrainState: The initial training state.
     """
     params = model.init(rng, jnp.ones([1, 28, 28, 1]))['params']
-    if optimizer == 'sgd':
-        init_fn, update_fn = sgd(learning_rate)
-    elif optimizer == 'adam':
-        init_fn, update_fn = adam(learning_rate)
-    elif optimizer == 'rmsprop':
-        init_fn, update_fn = rmsprop(learning_rate)
-    elif optimizer == 'custom':
-        init_fn = custom_optimizer(learning_rate)
-    else:
-        raise ValueError(f"Unsupported optimizer: {optimizer}")
+    init_fn, update_fn = optimizer
     return train_state.TrainState.create(
         apply_fn=model.apply,
         params=params,
@@ -78,7 +69,7 @@ def train_model(
     train_dataset: Any,
     num_epochs: int,
     learning_rate: float,
-    optimizer: str,
+    optimizer: Tuple[Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]],
     loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float]
 ) -> Tuple[
     train_state.TrainState, Dict[str, float]
@@ -91,7 +82,7 @@ def train_model(
         train_dataset (Any): The training dataset.
         num_epochs (int): The number of epochs to train for.
         learning_rate (float): The learning rate for the optimizer.
-        optimizer (str): The name of the optimizer to use.
+        optimizer (Tuple[Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]]): The optimizer to use.
         loss_fn (Callable[[jnp.ndarray, jnp.ndarray], float]): A function to
         compute the loss given the model's predictions and the true labels.
 
