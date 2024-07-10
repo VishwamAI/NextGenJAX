@@ -4,7 +4,7 @@ import jax.tree_util
 from typing import Callable, Tuple, Dict
 
 
-def sgd(learning_rate: float) -> Callable[[Dict, Dict], Dict]:
+def sgd(learning_rate: float) -> Tuple[Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]]:
     """
     Stochastic Gradient Descent (SGD) optimizer.
 
@@ -12,14 +12,19 @@ def sgd(learning_rate: float) -> Callable[[Dict, Dict], Dict]:
         learning_rate (float): The learning rate for the optimizer.
 
     Returns:
-        Callable[[Dict, Dict], Dict]: A function that updates the parameters
-        using SGD.
+        Tuple[Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]]: A tuple containing the
+        initialization and update functions for SGD.
     """
-    def update(params: Dict, grads: Dict) -> Dict:
-        return jax.tree_util.tree_map(
+    def init(params: Dict) -> Dict:
+        return params
+
+    def update(params: Dict, grads: Dict, state: Dict) -> Tuple[Dict, Dict]:
+        updated_params = jax.tree_util.tree_map(
             lambda p, g: p - learning_rate * g, params, grads
         )
-    return update
+        return updated_params, state
+
+    return init, update
 
 
 def adam(
