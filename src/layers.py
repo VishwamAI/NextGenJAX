@@ -3,6 +3,7 @@ import jax.numpy as jnp
 from typing import Callable, Optional
 from transformers import FlaxAutoModelForSeq2SeqLM, AutoTokenizer
 
+
 class DenseLayer(nn.Module):
     features: int
     activation: Optional[Callable[[jnp.ndarray], jnp.ndarray]] = None
@@ -15,6 +16,7 @@ class DenseLayer(nn.Module):
         if self.activation:
             x = self.activation(x)
         return x
+
 
 class ConvolutionalLayer(nn.Module):
     features: int
@@ -37,6 +39,7 @@ class ConvolutionalLayer(nn.Module):
             x = self.activation(x)
         return x
 
+
 class TransformerLayer(nn.Module):
     """
     TransformerLayer integrates a pre-trained transformer model from the Hugging Face Transformers library.
@@ -48,6 +51,7 @@ class TransformerLayer(nn.Module):
         setup(): Initializes the tokenizer and model using the specified model name.
         __call__(x: jnp.ndarray, max_length: int = 50) -> jnp.ndarray: Applies the transformer model to the input tensor.
     """
+
     model_name: str
 
     def setup(self):
@@ -63,5 +67,7 @@ class TransformerLayer(nn.Module):
         input_text = self.tokenizer.decode(x, skip_special_tokens=True)
         inputs = self.tokenizer(input_text, return_tensors="jax")
         outputs = self.model.generate(**inputs, max_length=max_length)
-        output_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        output_text = self.tokenizer.decode(
+            outputs[0], skip_special_tokens=True
+        )
         return self.tokenizer(output_text, return_tensors="jax")["input_ids"]
