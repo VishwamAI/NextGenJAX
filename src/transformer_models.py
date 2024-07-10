@@ -8,7 +8,9 @@ class TransformerModel:
         self.model_name = model_name
         self.device = torch.device(device)
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name).to(self.device)
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name).to(
+            self.device
+        )
 
     def save_model(self, save_directory: str):
         os.makedirs(save_directory, exist_ok=True)
@@ -33,5 +35,7 @@ class TransformerModel:
             raise ValueError("max_length must be a positive integer")
 
         inputs = self.tokenizer(input_text, return_tensors="pt").to(self.device)
-        outputs = self.model.generate(inputs["input_ids"], max_length=max_length)
+        outputs = self.model.generate(
+            inputs["input_ids"], max_length=max_length
+        )
         return self.tokenizer.decode(outputs[0], skip_special_tokens=True)
