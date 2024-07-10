@@ -26,9 +26,7 @@ class VocabParallelEmbedding(nn.Module):
             return embedding[input_ids]
 
         # Use pmap to parallelize the embedding lookup across devices
-        parallel_lookup = jax.pmap(
-            lookup_on_device, in_axes=(0, None), out_axes=0
-        )
+        parallel_lookup = jax.pmap(lookup_on_device, in_axes=(0, None), out_axes=0)
         result = parallel_lookup(embedding_split, input_ids)
 
         # Gather the results from all devices
