@@ -16,6 +16,7 @@ class NextGenModel(nn.Module):
     def setup(self):
         """Sets up the model by initializing the layers."""
         self.model_layers = []
+        print(f"Type of self.model_layers before appending: {type(self.model_layers)}")
         for layer_config in self.layers:
             layer_type = layer_config['type']
             if layer_type == 'dense':
@@ -44,6 +45,7 @@ class NextGenModel(nn.Module):
                 )
             else:
                 raise ValueError(f"Unsupported layer type: {layer_type}")
+        print(f"Type of self.model_layers after appending: {type(self.model_layers)}")
 
     def __call__(self, x: jnp.ndarray) -> jnp.ndarray:
         """
