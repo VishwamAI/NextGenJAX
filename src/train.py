@@ -10,11 +10,13 @@ OptimizerType = Tuple[
     Callable[[Dict], Any], Callable[[Dict, Dict, Any], Tuple[Dict, Any]]
 ]
 
+
 class Optimizer:
     def __init__(self, init_fn, update_fn, opt_state):
         self.init = init_fn
         self.update = update_fn
         self.state = opt_state
+
 
 def create_train_state(
     rng: jax.random.PRNGKey,
@@ -44,6 +46,7 @@ def create_train_state(
         tx=optimizer_obj,  # Pass the optimizer object
     )
 
+
 @jit
 def train_step(
     state: train_state.TrainState,
@@ -71,15 +74,14 @@ def train_step(
 
     grad_fn = value_and_grad(compute_loss)
     loss, grads = grad_fn(state.params)
-    new_params, new_opt_state = state.tx.update(
-        state.params, grads, state.tx.state
-    )
+    new_params, new_opt_state = state.tx.update(state.params, grads, state.tx.state)
     state = state.apply_gradients(
         grads=grads,
         params=new_params,
         tx=Optimizer(state.tx.init, state.tx.update, new_opt_state),
     )
     return state, loss
+
 
 def train_model(
     model: NextGenModel,
