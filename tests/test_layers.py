@@ -1,8 +1,8 @@
 import jax
 import jax.numpy as jnp
 import pytest
-from src.layers import DenseLayer, ConvolutionalLayer
-from src.custom_layers import CustomLayer
+from ..src.layers import DenseLayer, ConvolutionalLayer
+from ..src.custom_layers import CustomLayer
 import jax.nn as nn
 
 
