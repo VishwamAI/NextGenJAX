@@ -3,7 +3,7 @@ import jax.numpy as jnp
 import pytest
 from src.train import create_train_state, train_step, train_model
 from src.model import NextGenModel
-from src.optimizers import sgd
+from src.optimizers import sgd, Optimizer
 
 
 def test_create_train_state():
@@ -12,7 +12,8 @@ def test_create_train_state():
     rng = jax.random.PRNGKey(0)
     learning_rate = 0.01
     init_fn, update_fn = sgd(learning_rate)
-    state = create_train_state(rng, model, learning_rate, (init_fn, update_fn))
+    optimizer = Optimizer(init_fn, update_fn, None)
+    state = create_train_state(rng, model, learning_rate, optimizer)
     assert state.params is not None
     assert state.tx is not None
 
@@ -23,7 +24,8 @@ def test_train_step():
     rng = jax.random.PRNGKey(0)
     learning_rate = 0.01
     init_fn, update_fn = sgd(learning_rate)
-    state = create_train_state(rng, model, learning_rate, (init_fn, update_fn))
+    optimizer = Optimizer(init_fn, update_fn, None)
+    state = create_train_state(rng, model, learning_rate, optimizer)
     batch = {"image": jnp.ones((1, 28, 28, 1)), "label": jnp.ones((1, 10))}
 
     def loss_fn(logits, labels):
@@ -39,6 +41,7 @@ def test_train_model():
     model = NextGenModel(layers=layers)
     learning_rate = 0.01
     init_fn, update_fn = sgd(learning_rate)
+    optimizer = Optimizer(init_fn, update_fn, None)
     dataset = [
         {"image": jnp.ones((1, 28, 28, 1)), "label": jnp.ones((1, 10))}
         for _ in range(10)
@@ -52,7 +55,7 @@ def test_train_model():
         dataset,
         num_epochs=1,
         learning_rate=learning_rate,
-        optimizer=(init_fn, update_fn),
+        optimizer=optimizer,
         loss_fn=loss_fn,
     )
     assert final_state is not None
