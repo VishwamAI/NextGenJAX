@@ -13,7 +13,7 @@ def test_create_train_state():
     learning_rate = 0.01
     optimizer = 'sgd'
     state = create_train_state(
-        rng, model, layers, learning_rate, optimizer
+        rng, model, learning_rate, optimizer
     )
     assert state.params is not None
     assert state.tx is not None
@@ -27,7 +27,7 @@ def test_train_step():
     learning_rate = 0.01
     optimizer = 'sgd'
     state = create_train_state(
-        rng, model, layers, learning_rate, optimizer
+        rng, model, learning_rate, optimizer
     )
     batch = {'image': jnp.ones((1, 28, 28, 1)), 'label': jnp.ones((1, 10))}
 
@@ -54,7 +54,7 @@ def test_train_model():
         return jnp.mean((logits - labels) ** 2)
 
     final_state, metrics = train_model(
-        model, layers, dataset, num_epochs=1, learning_rate=learning_rate,
+        model, dataset, num_epochs=1, learning_rate=learning_rate,
         optimizer=optimizer, loss_fn=loss_fn
     )
     assert final_state is not None
