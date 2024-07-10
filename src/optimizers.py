@@ -4,7 +4,12 @@ import jax.tree_util
 from typing import Callable, Tuple, Dict
 
 
-def sgd(learning_rate: float) -> Tuple[Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]]:
+def sgd(
+    learning_rate: float
+) -> Tuple[
+    Callable[[Dict], Dict],
+    Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
+]:
     """
     Stochastic Gradient Descent (SGD) optimizer.
 
@@ -12,8 +17,10 @@ def sgd(learning_rate: float) -> Tuple[Callable[[Dict], Dict], Callable[[Dict, D
         learning_rate (float): The learning rate for the optimizer.
 
     Returns:
-        Tuple[Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]]: A tuple containing the
-        initialization and update functions for SGD.
+        Tuple[
+            Callable[[Dict], Dict],
+            Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
+        ]: A tuple containing the initialization and update functions for SGD.
     """
     def init(params: Dict) -> Dict:
         return params
