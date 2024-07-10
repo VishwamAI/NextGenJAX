@@ -26,7 +26,8 @@ layers = [
 ]
 
 # Initialize the model
-model = NextGenModel(layers=layers)
+model = NextGenModel()
+model.setup(layers)
 ```
 
 ## Training the Model

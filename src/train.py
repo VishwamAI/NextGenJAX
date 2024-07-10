@@ -64,6 +64,7 @@ def train_step(
 
 def train_model(
     model: NextGenModel,
+    layers: list,
     train_dataset: Any,
     num_epochs: int,
     learning_rate: float,
@@ -77,6 +78,7 @@ def train_model(
 
     Args:
         model (NextGenModel): The model to be trained.
+        layers (list): A list of layer configurations for the model.
         train_dataset (Any): The training dataset.
         num_epochs (int): The number of epochs to train for.
         learning_rate (float): The learning rate for the optimizer.
@@ -88,6 +90,7 @@ def train_model(
         Tuple[train_state.TrainState, Dict[str, float]]: The final training
         state and metrics.
     """
+    model.setup(layers)
     rng = jax.random.PRNGKey(0)
     state = create_train_state(rng, model, learning_rate, optimizer)
 
