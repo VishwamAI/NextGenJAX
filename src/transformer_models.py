@@ -2,6 +2,7 @@ import os
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 import torch
 
+
 class TransformerModel:
     def __init__(self, model_name: str, device: str = "cpu"):
         self.model_name = model_name
@@ -16,8 +17,12 @@ class TransformerModel:
 
     def load_model(self, load_directory: str):
         try:
-            self.tokenizer = AutoTokenizer.from_pretrained(os.path.join(load_directory, "tokenizer"))
-            self.model = AutoModelForSeq2SeqLM.from_pretrained(os.path.join(load_directory, "model")).to(self.device)
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                os.path.join(load_directory, "tokenizer")
+            )
+            self.model = AutoModelForSeq2SeqLM.from_pretrained(
+                os.path.join(load_directory, "model")
+            ).to(self.device)
         except Exception as e:
             print(f"Error loading model or tokenizer: {e}")
 

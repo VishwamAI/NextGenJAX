@@ -46,8 +46,12 @@ class NextGenModel(nn.Module):
                     activation=layer_config.get("activation"),
                 )(x)
             elif layer_type == "transformer":
-                transformer_layer = TransformerLayer(model_name=layer_config["model_name"])
-                x = transformer_layer(input_text=layer_config["input_text"], max_length=layer_config.get("max_length", 50))
+                transformer_layer = TransformerLayer(
+                    model_name=layer_config["model_name"]
+                )
+                x = transformer_layer(
+                    x, max_length=layer_config.get("max_length", 50)
+                )
             else:
                 raise ValueError(f"Unsupported layer type: {layer_type}")
         return x
