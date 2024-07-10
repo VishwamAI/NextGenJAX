@@ -44,12 +44,14 @@ class TransformerLayer(nn.Module):
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         self.model = FlaxAutoModelForSeq2SeqLM.from_pretrained(self.model_name)
 
-    def __call__(self, input_text: str, max_length: int = 50) -> str:
-        if not isinstance(input_text, str):
-            raise ValueError("input_text must be a string")
+    def __call__(self, x: jnp.ndarray, max_length: int = 50) -> jnp.ndarray:
+        if not isinstance(x, jnp.ndarray):
+            raise ValueError("Input must be a jnp.ndarray")
         if not isinstance(max_length, int) or max_length <= 0:
             raise ValueError("max_length must be a positive integer")
 
+        input_text = self.tokenizer.decode(x, skip_special_tokens=True)
         inputs = self.tokenizer(input_text, return_tensors="jax")
         outputs = self.model.generate(**inputs, max_length=max_length)
-        return self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        output_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        return self.tokenizer(output_text, return_tensors="jax")["input_ids"]
