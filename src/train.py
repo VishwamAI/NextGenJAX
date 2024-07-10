@@ -32,9 +32,9 @@ def create_train_state(
         train_state.TrainState: The initial training state.
     """
     rngs = jax.random.split(rng, jax.local_device_count())
-    params = jax.pmap(model.init, axis_name="batch")(rngs, jnp.ones([1, 28, 28, 1]))[
-        "params"
-    ]
+    params = jax.pmap(model.init, axis_name="batch")(
+        rngs, jnp.ones([1, 28, 28, 1])
+    )["params"]
     opt_state = jax.pmap(optimizer[0], axis_name="batch")(params)
 
     return train_state.TrainState.create(
@@ -80,7 +80,11 @@ def train_step(
     new_params = optax.apply_updates(state.params, updates)
     state = state.replace(
         step=state.step + 1,
-        tx=(state.tx[0], state.tx[1], new_opt_state),  # Update the optimizer state
+        tx=(
+            state.tx[0],
+            state.tx[1],
+            new_opt_state,
+        ),  # Update the optimizer state
         params=new_params,
     )
     return state, loss
