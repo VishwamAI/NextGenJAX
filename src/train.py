@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 import jax.tree_util
-from jax import value_and_grad
+from jax import value_and_grad, pmap
 from flax.training import train_state
 from typing import Any, Callable, Dict, Tuple
 from .model import NextGenModel
@@ -13,43 +13,32 @@ OptimizerType = Tuple[
 ]
 
 
-class Optimizer:
-    def __init__(self, init_fn, update_fn, opt_state):
-        self.init = init_fn
-        self.update_fn = update_fn
-        self.state = opt_state
-
-    def update(self, grads, state, params):
-        updates, new_state = self.update_fn(grads, state, params)
-        return updates, new_state
-
-
 def create_train_state(
     rng: jax.random.PRNGKey,
     model: NextGenModel,
     learning_rate: float,
-    optimizer: Optimizer,
+    optimizer: OptimizerType,
 ) -> train_state.TrainState:
     """
-    Creates initial training state.
+    Creates initial training state with sharded parameters.
 
     Args:
         rng (jax.random.PRNGKey): The random number generator key.
         model (NextGenModel): The model to be trained.
         learning_rate (float): The learning rate for the optimizer.
-        optimizer (Optimizer): The optimizer to use.
+        optimizer (OptimizerType): The optimizer to use.
 
     Returns:
         train_state.TrainState: The initial training state.
     """
-    params = model.init(rng, jnp.ones([1, 28, 28, 1]))["params"]
-    opt_state = optimizer.init(params)
-    optimizer_obj = Optimizer(optimizer.init, optimizer.update_fn, opt_state)
+    rngs = jax.random.split(rng, jax.local_device_count())
+    params = jax.pmap(model.init, axis_name='batch')(rngs, jnp.ones([1, 28, 28, 1]))["params"]
+    opt_state = jax.pmap(optimizer[0], axis_name='batch')(params)
 
     return train_state.TrainState.create(
         apply_fn=model.apply,
         params=params,
-        tx=optimizer_obj,  # Pass the optimizer object
+        tx=(optimizer[0], optimizer[1], opt_state),  # Pass the optimizer functions and state
     )
 
 
@@ -59,7 +48,7 @@ def train_step(
     loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float],
 ) -> Tuple[train_state.TrainState, float]:
     """
-    Performs a single training step.
+    Performs a single training step with parallelism.
 
     Args:
         state (train_state.TrainState): The current training state.
@@ -79,16 +68,17 @@ def train_step(
 
     grad_fn = value_and_grad(compute_loss)
     loss, grads = grad_fn(state.params)
-    updates, new_opt_state = state.tx.update(
-        grads, state.tx.state, state.params
-    )
+    updates, new_opt_state = state.tx[1](grads, state.tx[2], state.params)  # Use the optimizer update function
     new_params = optax.apply_updates(state.params, updates)
     state = state.replace(
         step=state.step + 1,
-        opt_state=new_opt_state,
+        tx=(state.tx[0], state.tx[1], new_opt_state),  # Update the optimizer state
+        params=new_params
     )
-    state = state.replace(params=new_params)
     return state, loss
+
+
+train_step = pmap(train_step, axis_name='batch')
 
 
 def train_model(
@@ -96,7 +86,7 @@ def train_model(
     train_dataset: Any,
     num_epochs: int,
     learning_rate: float,
-    optimizer: Optimizer,
+    optimizer: OptimizerType,
     loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float],
 ) -> Tuple[train_state.TrainState, Dict[str, float]]:
     """
@@ -107,7 +97,7 @@ def train_model(
         train_dataset (Any): The training dataset.
         num_epochs (int): The number of epochs to train for.
         learning_rate (float): The learning rate for the optimizer.
-        optimizer (Optimizer): The optimizer to use.
+        optimizer (OptimizerType): The optimizer to use.
         loss_fn (Callable[[jnp.ndarray, jnp.ndarray], float]): A function to
         compute the loss given the model's predictions and the true labels.
 
