@@ -1,0 +1,8 @@
+jax==0.4.27
+jaxlib==0.4.27
+flax==0.8.5
+optax==0.2.3
+pytest==6.2.4
+flake8==3.9.2
+numpy==1.26.4
+scipy==1.10.1
