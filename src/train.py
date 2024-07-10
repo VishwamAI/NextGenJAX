@@ -27,19 +27,20 @@ def create_train_state(
     """
     params = model.init(rng, jnp.ones([1, 28, 28, 1]))['params']
     if optimizer == 'sgd':
-        tx = sgd(learning_rate)
+        init_fn, update_fn = sgd(learning_rate)
     elif optimizer == 'adam':
-        tx = adam(learning_rate)
+        init_fn, update_fn = adam(learning_rate)
     elif optimizer == 'rmsprop':
-        tx = rmsprop(learning_rate)
+        init_fn, update_fn = rmsprop(learning_rate)
     elif optimizer == 'custom':
-        tx = custom_optimizer(learning_rate)
+        update_fn = custom_optimizer(learning_rate)
+        init_fn = lambda params: params  # Custom optimizer does not have an init function
     else:
         raise ValueError(f"Unsupported optimizer: {optimizer}")
     return train_state.TrainState.create(
         apply_fn=model.apply,
         params=params,
-        tx=tx
+        tx=init_fn(params)  # Pass the initialized parameters to the optimizer
     )
 
 
