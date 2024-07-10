@@ -4,14 +4,19 @@ from jax import jit, value_and_grad
 from flax.training import train_state
 from typing import Any, Callable, Dict, Tuple
 from .model import NextGenModel
-from .optimizers import sgd, adam, rmsprop, custom_optimizer
+
+# Removed unused imports
+# from .optimizers import sgd, adam, rmsprop, custom_optimizer
 
 
 def create_train_state(
     rng: jax.random.PRNGKey,
     model: NextGenModel,
     learning_rate: float,
-    optimizer: Tuple[Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]]
+    optimizer: Tuple[
+        Callable[[Dict], Dict],
+        Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
+    ]
 ) -> train_state.TrainState:
     """
     Creates initial training state.
@@ -69,7 +74,10 @@ def train_model(
     train_dataset: Any,
     num_epochs: int,
     learning_rate: float,
-    optimizer: Tuple[Callable[[Dict], Dict], Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]],
+    optimizer: Tuple[
+        Callable[[Dict], Dict],
+        Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
+    ],
     loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float]
 ) -> Tuple[
     train_state.TrainState, Dict[str, float]
