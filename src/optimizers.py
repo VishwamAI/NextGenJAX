@@ -153,7 +153,12 @@ def rmsprop(
     return init, update
 
 
-def custom_optimizer(learning_rate: float) -> Callable[[Dict, Dict], Dict]:
+def custom_optimizer(
+    learning_rate: float
+) -> Tuple[
+    Callable[[Dict], Dict],
+    Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
+]:
     """
     Custom optimizer example.
 
@@ -161,12 +166,20 @@ def custom_optimizer(learning_rate: float) -> Callable[[Dict, Dict], Dict]:
         learning_rate (float): The learning rate for the optimizer.
 
     Returns:
-        Callable[[Dict, Dict], Dict]: A function that updates the parameters
-        using a custom optimization algorithm.
+        Tuple[
+            Callable[[Dict], Dict],
+            Callable[[Dict, Dict, Dict], Tuple[Dict, Dict]]
+        ]: A tuple containing the initialization and update functions for
+        the custom optimizer.
     """
-    def update(params: Dict, grads: Dict) -> Dict:
+    def init(params: Dict) -> Dict:
+        return params
+
+    def update(params: Dict, grads: Dict, state: Dict) -> Tuple[Dict, Dict]:
         # Example of a custom optimization algorithm
-        return jax.tree_util.tree_map(
+        updated_params = jax.tree_util.tree_map(
             lambda p, g: p - learning_rate * jnp.sin(g), params, grads
         )
-    return update
+        return updated_params, state
+
+    return init, update
