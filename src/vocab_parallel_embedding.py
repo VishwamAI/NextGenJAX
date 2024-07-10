@@ -3,13 +3,18 @@ import jax.numpy as jnp
 from flax import linen as nn
 from typing import Callable
 
+
 class VocabParallelEmbedding(nn.Module):
     num_embeddings: int
     embedding_dim: int
     init_method: Callable = jax.nn.initializers.normal()
 
     def setup(self):
-        self.embedding = self.param('embedding', self.init_method, (self.num_embeddings, self.embedding_dim))
+        self.embedding = self.param(
+            "embedding",
+            self.init_method,
+            (self.num_embeddings, self.embedding_dim),
+        )
 
     def __call__(self, input_ids: jnp.ndarray) -> jnp.ndarray:
         # Split the embedding matrix across devices
@@ -21,7 +26,9 @@ class VocabParallelEmbedding(nn.Module):
             return embedding[input_ids]
 
         # Use pmap to parallelize the embedding lookup across devices
-        parallel_lookup = jax.pmap(lookup_on_device, in_axes=(0, None), out_axes=0)
+        parallel_lookup = jax.pmap(
+            lookup_on_device, in_axes=(0, None), out_axes=0
+        )
         result = parallel_lookup(embedding_split, input_ids)
 
         # Gather the results from all devices
