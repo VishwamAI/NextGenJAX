@@ -18,6 +18,7 @@ setup(
         "optax==0.2.3",
         "numpy==1.26.4",
         "scipy==1.10.1",
+        "torch==2.3.1",
     ],
     extras_require={
         "dev": [
