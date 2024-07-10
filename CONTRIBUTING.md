@@ -17,20 +17,31 @@ Thank you for your interest in contributing to NextGenJAX! We welcome contributi
    git checkout -b feature/your-feature-name
    ```
 
-4. **Make Changes**: Implement your changes in the appropriate files. Ensure that your code follows the project's coding standards and includes necessary tests.
+4. **Set Up Development Environment**: Install the necessary dependencies and set up your development environment.
+   ```bash
+   pip install -e .
+   pip install -r requirements.txt
+   ```
 
-5. **Commit Changes**: Commit your changes with a clear and descriptive commit message.
+5. **Make Changes**: Implement your changes in the appropriate files. Ensure that your code follows the project's coding standards and includes necessary tests.
+
+6. **Run Tests**: Run the tests to ensure your changes do not break existing functionality.
+   ```bash
+   pytest
+   ```
+
+7. **Commit Changes**: Commit your changes with a clear and descriptive commit message.
    ```bash
    git add .
    git commit -m "Add feature: your feature description"
    ```
 
-6. **Push Changes**: Push your changes to your forked repository.
+8. **Push Changes**: Push your changes to your forked repository.
    ```bash
    git push origin feature/your-feature-name
    ```
 
-7. **Create a Pull Request**: Open a pull request from your forked repository to the main repository. Provide a detailed description of your changes and any relevant information. Use the [Pull Request Template](.github/PULL_REQUEST_TEMPLATE.md) to ensure all necessary information is included.
+9. **Create a Pull Request**: Open a pull request from your forked repository to the main repository. Provide a detailed description of your changes and any relevant information. Use the [Pull Request Template](.github/PULL_REQUEST_TEMPLATE.md) to ensure all necessary information is included.
 
 ## Code of Conduct
 
