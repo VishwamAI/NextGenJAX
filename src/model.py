@@ -15,18 +15,18 @@ class NextGenModel(nn.Module):
 
     def setup(self):
         """Sets up the model by initializing the layers."""
-        self.model_layers = []
+        self._model_layers = []
         for layer_config in self.layers:
             layer_type = layer_config['type']
             if layer_type == 'dense':
-                self.model_layers.append(
+                self._model_layers.append(
                     DenseLayer(
                         features=layer_config['features'],
                         activation=layer_config.get('activation')
                     )
                 )
             elif layer_type == 'conv':
-                self.model_layers.append(
+                self._model_layers.append(
                     ConvolutionalLayer(
                         features=layer_config['features'],
                         kernel_size=layer_config['kernel_size'],
@@ -36,7 +36,7 @@ class NextGenModel(nn.Module):
                     )
                 )
             elif layer_type == 'custom':
-                self.model_layers.append(
+                self._model_layers.append(
                     CustomLayer(
                         features=layer_config['features'],
                         activation=layer_config.get('activation')
@@ -55,6 +55,6 @@ class NextGenModel(nn.Module):
         Returns:
             jnp.ndarray: The output array after applying the model layers.
         """
-        for layer in self.model_layers:
+        for layer in self._model_layers:
             x = layer(x)
         return x
