@@ -4,10 +4,11 @@ from src.optimizers import sgd, adam, rmsprop, custom_optimizer
 
 
 def test_sgd():
-    optimizer = sgd(learning_rate=0.01)
+    init_fn, update_fn = sgd(learning_rate=0.01)
     params = {'w': jnp.array([1.0, 2.0, 3.0])}
     grads = {'w': jnp.array([0.1, 0.2, 0.3])}
-    updated_params = optimizer(params, grads)
+    state = init_fn(params)
+    updated_params, new_state = update_fn(params, grads, state)
     assert jnp.allclose(updated_params['w'], jnp.array([0.999, 1.998, 2.997]))
 
 
