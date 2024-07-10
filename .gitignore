@@ -13,3 +13,6 @@ venv.bak/
 
 # Python compiled files
 *.pyc
+
+# Virtual environments
+nextgenjax-venv/
