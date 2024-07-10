@@ -27,8 +27,7 @@ def create_train_state(
     Returns:
         train_state.TrainState: The initial training state.
     """
-    model.setup(layers)
-    params = model.init(rng, jnp.ones([1, 28, 28, 1]))['params']
+    params = model.init(rng, jnp.ones([1, 28, 28, 1]), layers=layers)['params']
     if optimizer == 'sgd':
         tx = sgd(learning_rate)
     elif optimizer == 'adam':
