@@ -10,10 +10,24 @@ from .optimizers import sgd, adam, rmsprop, custom_optimizer
 def create_train_state(
     rng: jax.random.PRNGKey,
     model: NextGenModel,
+    layers: list,
     learning_rate: float,
     optimizer: str
 ) -> train_state.TrainState:
-    """Creates initial training state."""
+    """
+    Creates initial training state.
+
+    Args:
+        rng (jax.random.PRNGKey): The random number generator key.
+        model (NextGenModel): The model to be trained.
+        layers (list): A list of layer configurations for the model.
+        learning_rate (float): The learning rate for the optimizer.
+        optimizer (str): The name of the optimizer to use.
+
+    Returns:
+        train_state.TrainState: The initial training state.
+    """
+    model.setup(layers)
     params = model.init(rng, jnp.ones([1, 28, 28, 1]))['params']
     if optimizer == 'sgd':
         tx = sgd(learning_rate)
@@ -90,9 +104,8 @@ def train_model(
         Tuple[train_state.TrainState, Dict[str, float]]: The final training
         state and metrics.
     """
-    model.setup(layers)
     rng = jax.random.PRNGKey(0)
-    state = create_train_state(rng, model, learning_rate, optimizer)
+    state = create_train_state(rng, model, layers, learning_rate, optimizer)
 
     for epoch in range(num_epochs):
         for batch in train_dataset:
