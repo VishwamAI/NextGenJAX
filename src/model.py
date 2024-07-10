@@ -1,6 +1,6 @@
 import jax.numpy as jnp
 from flax import linen as nn
-from .layers import DenseLayer, ConvolutionalLayer
+from .layers import DenseLayer, ConvolutionalLayer, TransformerLayer
 from .custom_layers import CustomLayer
 
 
@@ -45,6 +45,9 @@ class NextGenModel(nn.Module):
                     features=layer_config["features"],
                     activation=layer_config.get("activation"),
                 )(x)
+            elif layer_type == "transformer":
+                transformer_layer = TransformerLayer(model_name=layer_config["model_name"])
+                x = transformer_layer(input_text=layer_config["input_text"], max_length=layer_config.get("max_length", 50))
             else:
                 raise ValueError(f"Unsupported layer type: {layer_type}")
         return x
