@@ -11,12 +11,11 @@ class NextGenModel(nn.Module):
     Attributes:
         layers (list): A list of layer configurations for the model.
     """
-    layers: list
 
-    def setup(self):
+    def setup(self, layers):
         """Sets up the model by initializing the layers."""
         self._model_layers = []
-        for layer_config in self.layers:
+        for layer_config in layers:
             layer_type = layer_config['type']
             if layer_type == 'dense':
                 self._model_layers.append(
