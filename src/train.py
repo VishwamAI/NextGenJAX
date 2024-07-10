@@ -1,6 +1,6 @@
 import jax
 import jax.numpy as jnp
-from jax import jit, value_and_grad
+from jax import value_and_grad
 from flax.training import train_state
 from typing import Any, Callable, Dict, Tuple
 from .model import NextGenModel
