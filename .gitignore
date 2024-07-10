@@ -16,3 +16,12 @@ venv.bak/
 
 # Virtual environments
 nextgenjax-venv/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# VS Code settings
+.vscode/
+
+# macOS files
+.DS_Store
