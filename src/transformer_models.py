@@ -35,7 +35,7 @@ class TransformerModel:
             raise ValueError("max_length must be a positive integer")
 
         inputs = self.tokenizer(input_text, return_tensors="pt").to(self.device)
-        outputs = self.model.generate(
-            inputs["input_ids"], max_length=max_length
+        outputs = self.model.generate(inputs["input_ids"], max_length=max_length)
+        return self.tokenizer.decode(
+            outputs[0], skip_special_tokens=True
         )
-        return self.tokenizer.decode(outputs[0], skip_special_tokens=True)
