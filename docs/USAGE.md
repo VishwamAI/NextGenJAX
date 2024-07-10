@@ -41,11 +41,12 @@ X_train = jnp.ones((100, 20))  # Example input data
 y_train = jnp.ones((100, 10))  # Example target data
 
 # Define the optimizer and loss function
-optimizer = sgd(learning_rate=0.01)
-loss_fn = lambda params, x, y: jnp.mean((model.apply(params, x) - y) ** 2)
+optimizer = 'sgd'
+loss_fn = lambda logits, labels: jnp.mean((logits - labels) ** 2)
 
 # Train the model
-params = train_model(model, X_train, y_train, optimizer, loss_fn, epochs=10)
+state, metrics = train_model(model, layers, X_train, y_train, num_epochs=10, learning_rate=0.01, optimizer=optimizer, loss_fn=loss_fn)
+print(f"Final training metrics: {metrics}")
 ```
 
 ## Using the Trained Model
@@ -55,7 +56,7 @@ Once the model is trained, you can use it to make predictions on new data:
 X_new = jnp.ones((10, 20))  # Example new input data
 
 # Make predictions
-predictions = model.apply(params, X_new)
+predictions = model.apply(state.params, X_new)
 print(predictions)
 ```
 
