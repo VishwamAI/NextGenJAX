@@ -138,7 +138,9 @@ def rmsprop(
         )
         params = jax.tree_util.tree_map(
             lambda p, avg, g: p - learning_rate * g / (jnp.sqrt(avg) + epsilon),
-            params, avg_sq_grad, grads
+            params,
+            avg_sq_grad,
+            grads,
         )
         return params, avg_sq_grad
 
