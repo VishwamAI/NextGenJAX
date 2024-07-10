@@ -12,7 +12,9 @@ def test_create_train_state():
     rng = jax.random.PRNGKey(0)
     learning_rate = 0.01
     init_fn, update_fn = sgd(learning_rate)
-    optimizer = Optimizer(init_fn, update_fn, None)
+    params = model.init(rng, jnp.ones([1, 28, 28, 1]))["params"]
+    opt_state = init_fn(params)
+    optimizer = Optimizer(init_fn, update_fn, opt_state)
     state = create_train_state(rng, model, learning_rate, optimizer)
     assert state.params is not None
     assert state.tx is not None
@@ -24,7 +26,9 @@ def test_train_step():
     rng = jax.random.PRNGKey(0)
     learning_rate = 0.01
     init_fn, update_fn = sgd(learning_rate)
-    optimizer = Optimizer(init_fn, update_fn, None)
+    params = model.init(rng, jnp.ones([1, 28, 28, 1]))["params"]
+    opt_state = init_fn(params)
+    optimizer = Optimizer(init_fn, update_fn, opt_state)
     state = create_train_state(rng, model, learning_rate, optimizer)
     batch = {"image": jnp.ones((1, 28, 28, 1)), "label": jnp.ones((1, 10))}
 
@@ -41,7 +45,9 @@ def test_train_model():
     model = NextGenModel(layers=layers)
     learning_rate = 0.01
     init_fn, update_fn = sgd(learning_rate)
-    optimizer = Optimizer(init_fn, update_fn, None)
+    params = model.init(jax.random.PRNGKey(0), jnp.ones([1, 28, 28, 1]))["params"]
+    opt_state = init_fn(params)
+    optimizer = Optimizer(init_fn, update_fn, opt_state)
     dataset = [
         {"image": jnp.ones((1, 28, 28, 1)), "label": jnp.ones((1, 10))}
         for _ in range(10)
