@@ -3,8 +3,8 @@ from setuptools import setup, find_packages
 setup(
     name="NextGenJAX",
     version="0.1.0",
-    author="Your Name",
-    author_email="your.email@example.com",
+    author="kasinadhsarma",
+    author_email="kasinadhsarma@gmail.com",
     description="A JAX-based neural network library surpassing Google DeepMind's Haiku and Optax",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
@@ -18,7 +18,7 @@ setup(
         "optax==0.2.3",
         "numpy==1.26.4",
         "scipy==1.10.1",
-        "torch==2.3.1",
+        "fairscale==0.4.6",
     ],
     extras_require={
         "dev": [
