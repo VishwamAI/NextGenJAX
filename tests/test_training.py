@@ -45,7 +45,9 @@ def test_train_model():
     model = NextGenModel(layers=layers)
     learning_rate = 0.01
     init_fn, update_fn = sgd(learning_rate)
-    params = model.init(jax.random.PRNGKey(0), jnp.ones([1, 28, 28, 1]))["params"]
+    params = model.init(
+        jax.random.PRNGKey(0), jnp.ones([1, 28, 28, 1])
+    )["params"]
     opt_state = init_fn(params)
     optimizer = Optimizer(init_fn, update_fn, opt_state)
     dataset = [
