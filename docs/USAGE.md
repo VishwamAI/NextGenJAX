@@ -19,16 +19,14 @@ import jax.numpy as jnp
 from src.model import NextGenModel
 
 # Define the model configuration
-config = {
-    'layers': [
-        {'type': 'DenseLayer', 'features': 128, 'activation': jnp.relu},
-        {'type': 'DenseLayer', 'features': 64, 'activation': jnp.relu},
-        {'type': 'DenseLayer', 'features': 10, 'activation': None}
-    ]
-}
+layers = [
+    {'type': 'DenseLayer', 'features': 128, 'activation': jnp.relu},
+    {'type': 'DenseLayer', 'features': 64, 'activation': jnp.relu},
+    {'type': 'DenseLayer', 'features': 10, 'activation': None}
+]
 
 # Initialize the model
-model = NextGenModel(config)
+model = NextGenModel(layers=layers)
 ```
 
 ## Training the Model
