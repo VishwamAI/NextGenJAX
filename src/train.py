@@ -47,7 +47,7 @@ def create_train_state(
     )
 
 
-@jit
+@jit(static_argnums=(2,))
 def train_step(
     state: train_state.TrainState,
     batch: Dict[str, jnp.ndarray],
