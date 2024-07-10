@@ -6,31 +6,28 @@ from src.model import NextGenModel
 
 
 def test_create_train_state():
-    model = NextGenModel(
-        layers=[{'type': 'dense', 'features': 10, 'activation': jnp.tanh}]
-    )
-    print(f"Type of model.layers in test_create_train_state: "
-          f"{type(model.layers)}")
+    model = NextGenModel()
+    layers = [{'type': 'dense', 'features': 10, 'activation': jnp.tanh}]
+    print(f"Type of model.layers in test_create_train_state: {type(layers)}")
     rng = jax.random.PRNGKey(0)
     learning_rate = 0.01
     optimizer = 'sgd'
     state = create_train_state(
-        rng, model, learning_rate, optimizer
+        rng, model, layers, learning_rate, optimizer
     )
     assert state.params is not None
     assert state.tx is not None
 
 
 def test_train_step():
-    model = NextGenModel(
-        layers=[{'type': 'dense', 'features': 10, 'activation': jnp.tanh}]
-    )
-    print(f"Type of model.layers in test_train_step: {type(model.layers)}")
+    model = NextGenModel()
+    layers = [{'type': 'dense', 'features': 10, 'activation': jnp.tanh}]
+    print(f"Type of model.layers in test_train_step: {type(layers)}")
     rng = jax.random.PRNGKey(0)
     learning_rate = 0.01
     optimizer = 'sgd'
     state = create_train_state(
-        rng, model, learning_rate, optimizer
+        rng, model, layers, learning_rate, optimizer
     )
     batch = {'image': jnp.ones((1, 28, 28, 1)), 'label': jnp.ones((1, 10))}
 
@@ -43,10 +40,9 @@ def test_train_step():
 
 
 def test_train_model():
-    model = NextGenModel(
-        layers=[{'type': 'dense', 'features': 10, 'activation': jnp.tanh}]
-    )
-    print(f"Type of model.layers in test_train_model: {type(model.layers)}")
+    model = NextGenModel()
+    layers = [{'type': 'dense', 'features': 10, 'activation': jnp.tanh}]
+    print(f"Type of model.layers in test_train_model: {type(layers)}")
     learning_rate = 0.01
     optimizer = 'sgd'
     dataset = [
@@ -58,7 +54,7 @@ def test_train_model():
         return jnp.mean((logits - labels) ** 2)
 
     final_state, metrics = train_model(
-        model, dataset, num_epochs=1, learning_rate=learning_rate,
+        model, layers, dataset, num_epochs=1, learning_rate=learning_rate,
         optimizer=optimizer, loss_fn=loss_fn
     )
     assert final_state is not None
