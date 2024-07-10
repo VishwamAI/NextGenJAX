@@ -76,9 +76,7 @@ def train_step(
 
     grad_fn = value_and_grad(compute_loss)
     loss, grads = grad_fn(state.params)
-    new_params, new_opt_state = state.tx.update(
-        state.params, grads, state.tx.state
-    )
+    new_params, new_opt_state = state.tx.update(state.params, grads, state.tx.state)
     state = state.apply_gradients(
         grads=grads,
         params=new_params,
