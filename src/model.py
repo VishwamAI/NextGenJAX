@@ -8,8 +8,8 @@ class NextGenModel(nn.Module):
     """
     The main model class for NextGenJAX.
 
-    Attributes:
-        layers (list): A list of layer configurations for the model.
+    Methods:
+        setup(layers): Sets up the model by initializing the layers.
     """
 
     def setup(self, layers):
