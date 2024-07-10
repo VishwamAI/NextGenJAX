@@ -1,9 +1,11 @@
 import jax
 import jax.numpy as jnp
+import jax.tree_util
 from jax import value_and_grad
 from flax.training import train_state
 from typing import Any, Callable, Dict, Tuple
 from .model import NextGenModel
+import optax
 
 # Type alias for optimizer
 OptimizerType = Tuple[
@@ -14,8 +16,12 @@ OptimizerType = Tuple[
 class Optimizer:
     def __init__(self, init_fn, update_fn, opt_state):
         self.init = init_fn
-        self.update = update_fn
+        self.update_fn = update_fn
         self.state = opt_state
+
+    def update(self, grads, state, params):
+        updates, new_state = self.update_fn(grads, state, params)
+        return updates, new_state
 
 
 def create_train_state(
@@ -38,7 +44,7 @@ def create_train_state(
     """
     params = model.init(rng, jnp.ones([1, 28, 28, 1]))["params"]
     opt_state = optimizer.init(params)
-    optimizer_obj = Optimizer(optimizer.init, optimizer.update, opt_state)
+    optimizer_obj = Optimizer(optimizer.init, optimizer.update_fn, opt_state)
 
     return train_state.TrainState.create(
         apply_fn=model.apply,
@@ -73,16 +79,15 @@ def train_step(
 
     grad_fn = value_and_grad(compute_loss)
     loss, grads = grad_fn(state.params)
-    new_params, new_opt_state = state.tx.update(
-        state.params, grads, state.tx.state
+    updates, new_opt_state = state.tx.update(
+        grads, state.tx.state, state.params
     )
-    state = state.apply_gradients(
-        grads=grads,
-        params=new_params,
-        tx=Optimizer(
-            state.tx.init, state.tx.update, new_opt_state
-        ),
+    new_params = optax.apply_updates(state.params, updates)
+    state = state.replace(
+        step=state.step + 1,
+        opt_state=new_opt_state,
     )
+    state = state.replace(params=new_params)
     return state, loss
 
 
