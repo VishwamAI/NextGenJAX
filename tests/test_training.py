@@ -1,9 +1,9 @@
 import jax
 import jax.numpy as jnp
 import pytest
-from ..src.train import create_train_state, train_step, train_model, Optimizer
-from ..src.model import NextGenModel
-from ..src.optimizers import sgd
+from src.train import create_train_state, train_step, train_model, Optimizer
+from src.model import NextGenModel
+from src.optimizers import sgd
 
 
 def test_create_train_state():
