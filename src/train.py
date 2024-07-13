@@ -8,15 +8,12 @@ from .model import NextGenModel
 import optax
 
 # Type alias for optimizer
-OptimizerType = Tuple[
-    Callable[[Dict], Any], Callable[[Dict, Dict, Any], Tuple[Dict, Any]]
-]
+OptimizerType = optax.GradientTransformation
 
 
 def create_train_state(
     rng: jax.random.PRNGKey,
     model: NextGenModel,
-    learning_rate: float,
     optimizer: OptimizerType,
 ) -> train_state.TrainState:
     """
@@ -25,7 +22,6 @@ def create_train_state(
     Args:
         rng (jax.random.PRNGKey): The random number generator key.
         model (NextGenModel): The model to be trained.
-        learning_rate (float): The learning rate for the optimizer.
         optimizer (OptimizerType): The optimizer to use.
 
     Returns:
@@ -35,16 +31,11 @@ def create_train_state(
     params = jax.pmap(model.init, axis_name="batch")(
         rngs, jnp.ones([1, 28, 28, 1])
     )["params"]
-    opt_state = jax.pmap(optimizer[0], axis_name="batch")(params)
 
     return train_state.TrainState.create(
         apply_fn=model.apply,
         params=params,
-        tx=(
-            optimizer[0],
-            optimizer[1],
-            opt_state,
-        ),  # Pass the optimizer functions and state
+        tx=optimizer,
     )
 
 
@@ -74,19 +65,7 @@ def train_step(
 
     grad_fn = value_and_grad(compute_loss)
     loss, grads = grad_fn(state.params)
-    updates, new_opt_state = state.tx[1](
-        grads, state.tx[2], state.params
-    )  # Use the optimizer update function
-    new_params = optax.apply_updates(state.params, updates)
-    state = state.replace(
-        step=state.step + 1,
-        tx=(
-            state.tx[0],
-            state.tx[1],
-            new_opt_state,
-        ),  # Update the optimizer state
-        params=new_params,
-    )
+    state = state.apply_gradients(grads=grads)
     return state, loss
 
 
@@ -97,7 +76,6 @@ def train_model(
     model: NextGenModel,
     train_dataset: Any,
     num_epochs: int,
-    learning_rate: float,
     optimizer: OptimizerType,
     loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float],
 ) -> Tuple[train_state.TrainState, Dict[str, float]]:
@@ -108,7 +86,6 @@ def train_model(
         model (NextGenModel): The model to be trained.
         train_dataset (Any): The training dataset.
         num_epochs (int): The number of epochs to train for.
-        learning_rate (float): The learning rate for the optimizer.
         optimizer (OptimizerType): The optimizer to use.
         loss_fn (Callable[[jnp.ndarray, jnp.ndarray], float]): A function to
         compute the loss given the model's predictions and the true labels.
@@ -118,7 +95,7 @@ def train_model(
         state and metrics.
     """
     rng = jax.random.PRNGKey(0)
-    state = create_train_state(rng, model, learning_rate, optimizer)
+    state = create_train_state(rng, model, optimizer)
 
     for epoch in range(num_epochs):
         for batch in train_dataset:
