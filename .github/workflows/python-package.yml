@@ -5,9 +5,10 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.8, 3.9, '3.10']
 
     steps:
     - uses: actions/checkout@v3
@@ -26,6 +27,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest transformers
+        pip install torch --index-url https://download.pytorch.org/whl/cpu
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       timeout-minutes: 10
     - name: Lint with flake8
