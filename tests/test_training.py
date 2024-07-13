@@ -25,8 +25,8 @@ def test_train_step():
     optimizer = optax.sgd(learning_rate)
     state = create_train_state(rng, model, optimizer)
     batch = {
-        "image": jnp.ones((jax.local_device_count(), 1, 28, 28, 1)),
-        "label": jnp.ones((jax.local_device_count(), 1, 10))
+        "image": jnp.ones((1, 28, 28, 1)),
+        "label": jnp.ones((1, 10))
     }
 
     def loss_fn(logits, labels):
@@ -42,8 +42,8 @@ def test_train_model():
     model = NextGenModel(layers=layers)
     optimizer = optax.sgd(0.01)
     dataset = [
-        {"image": jnp.ones((jax.local_device_count(), 1, 28, 28, 1)),
-         "label": jnp.ones((jax.local_device_count(), 1, 10))}
+        {"image": jnp.ones((1, 28, 28, 1)),
+         "label": jnp.ones((1, 10))}
         for _ in range(10)
     ]
 
