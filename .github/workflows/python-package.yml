@@ -1,4 +1,6 @@
 ---
+# Add a comment to trigger a new GitHub Actions workflow run
+# This change is for debugging purposes only
 name: Python package
 
 on:
