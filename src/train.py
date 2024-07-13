@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 import jax.tree_util
-from jax import value_and_grad, pmap
+from jax import value_and_grad
 from flax.training import train_state
 from typing import Any, Callable, Dict, Tuple
 from .model import NextGenModel
@@ -17,7 +17,7 @@ def create_train_state(
     optimizer: OptimizerType,
 ) -> train_state.TrainState:
     """
-    Creates initial training state with sharded parameters.
+    Creates initial training state.
 
     Args:
         rng (jax.random.PRNGKey): The random number generator key.
@@ -27,10 +27,7 @@ def create_train_state(
     Returns:
         train_state.TrainState: The initial training state.
     """
-    rngs = jax.random.split(rng, jax.local_device_count())
-    params = jax.pmap(model.init, axis_name="batch")(
-        rngs, jnp.ones([1, 28, 28, 1])
-    )["params"]
+    params = model.init(rng, jnp.ones([1, 28, 28, 1]))["params"]
 
     return train_state.TrainState.create(
         apply_fn=model.apply,
@@ -45,7 +42,7 @@ def train_step(
     loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float],
 ) -> Tuple[train_state.TrainState, float]:
     """
-    Performs a single training step with parallelism.
+    Performs a single training step.
 
     Args:
         state (train_state.TrainState): The current training state.
@@ -67,9 +64,6 @@ def train_step(
     loss, grads = grad_fn(state.params)
     state = state.apply_gradients(grads=grads)
     return state, loss
-
-
-train_step = pmap(train_step, axis_name="batch")
 
 
 def train_model(
@@ -96,10 +90,7 @@ def train_model(
     """
     def data_loader(dataset):
         for batch in dataset:
-            yield jax.tree_map(
-                lambda x: jnp.broadcast_to(x, (jax.local_device_count(),) + x.shape),
-                batch
-            )
+            yield batch
 
     rng = jax.random.PRNGKey(0)
     state = create_train_state(rng, model, optimizer)
