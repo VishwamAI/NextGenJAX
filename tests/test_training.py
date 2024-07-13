@@ -1,9 +1,9 @@
 import jax
 import jax.numpy as jnp
 import pytest
-from src.train import create_train_state, train_step, train_model, Optimizer
+import optax
+from src.train import create_train_state, train_step, train_model
 from src.model import NextGenModel
-from src.optimizers import sgd
 
 
 def test_create_train_state():
@@ -11,11 +11,8 @@ def test_create_train_state():
     model = NextGenModel(layers=layers)
     rng = jax.random.PRNGKey(0)
     learning_rate = 0.01
-    init_fn, update_fn = sgd(learning_rate)
-    params = model.init(rng, jnp.ones([1, 28, 28, 1]))["params"]
-    opt_state = init_fn(params)
-    optimizer = Optimizer(init_fn, update_fn, opt_state)
-    state = create_train_state(rng, model, learning_rate, optimizer)
+    optimizer = optax.sgd(learning_rate)
+    state = create_train_state(rng, model, optimizer)
     assert state.params is not None
     assert state.tx is not None
 
@@ -25,11 +22,8 @@ def test_train_step():
     model = NextGenModel(layers=layers)
     rng = jax.random.PRNGKey(0)
     learning_rate = 0.01
-    init_fn, update_fn = sgd(learning_rate)
-    params = model.init(rng, jnp.ones([1, 28, 28, 1]))["params"]
-    opt_state = init_fn(params)
-    optimizer = Optimizer(init_fn, update_fn, opt_state)
-    state = create_train_state(rng, model, learning_rate, optimizer)
+    optimizer = optax.sgd(learning_rate)
+    state = create_train_state(rng, model, optimizer)
     batch = {"image": jnp.ones((1, 28, 28, 1)), "label": jnp.ones((1, 10))}
 
     def loss_fn(logits, labels):
@@ -44,12 +38,7 @@ def test_train_model():
     layers = [{"type": "dense", "features": 10, "activation": jnp.tanh}]
     model = NextGenModel(layers=layers)
     learning_rate = 0.01
-    init_fn, update_fn = sgd(learning_rate)
-    params = model.init(
-        jax.random.PRNGKey(0), jnp.ones([1, 28, 28, 1])
-    )["params"]
-    opt_state = init_fn(params)
-    optimizer = Optimizer(init_fn, update_fn, opt_state)
+    optimizer = optax.sgd(learning_rate)
     dataset = [
         {"image": jnp.ones((1, 28, 28, 1)), "label": jnp.ones((1, 10))}
         for _ in range(10)
@@ -62,7 +51,6 @@ def test_train_model():
         model,
         dataset,
         num_epochs=1,
-        learning_rate=learning_rate,
         optimizer=optimizer,
         loss_fn=loss_fn,
     )
