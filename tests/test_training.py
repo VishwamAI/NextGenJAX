@@ -24,14 +24,17 @@ def test_train_step():
     learning_rate = 0.01
     optimizer = optax.sgd(learning_rate)
     state = create_train_state(rng, model, optimizer)
-    batch = {"image": jnp.ones((1, 28, 28, 1)), "label": jnp.ones((1, 10))}
+    batch = {
+        "image": jnp.ones((jax.local_device_count(), 1, 28, 28, 1)),
+        "label": jnp.ones((jax.local_device_count(), 1, 10))
+    }
 
     def loss_fn(logits, labels):
         return jnp.mean((logits - labels) ** 2)
 
     new_state, loss = train_step(state, batch, loss_fn)
-    assert new_state.params is not None
-    assert loss >= 0
+    assert jax.tree_util.tree_all(jax.tree_map(lambda x: x is not None, new_state.params))
+    assert jnp.all(loss >= 0)
 
 
 def test_train_model():
@@ -39,7 +42,8 @@ def test_train_model():
     model = NextGenModel(layers=layers)
     optimizer = optax.sgd(0.01)
     dataset = [
-        {"image": jnp.ones((1, 28, 28, 1)), "label": jnp.ones((1, 10))}
+        {"image": jnp.ones((jax.local_device_count(), 1, 28, 28, 1)),
+         "label": jnp.ones((jax.local_device_count(), 1, 10))}
         for _ in range(10)
     ]
 
@@ -55,6 +59,7 @@ def test_train_model():
     )
     assert final_state is not None
     assert "loss" in metrics
+    assert jnp.isscalar(metrics["loss"])
 
 
 if __name__ == "__main__":

@@ -94,13 +94,23 @@ def train_model(
         Tuple[train_state.TrainState, Dict[str, float]]: The final training
         state and metrics.
     """
+    def data_loader(dataset):
+        for batch in dataset:
+            yield jax.tree_map(
+                lambda x: jnp.broadcast_to(x, (jax.local_device_count(),) + x.shape),
+                batch
+            )
+
     rng = jax.random.PRNGKey(0)
     state = create_train_state(rng, model, optimizer)
 
     for epoch in range(num_epochs):
-        for batch in train_dataset:
+        epoch_loss = []
+        for batch in data_loader(train_dataset):
             state, loss = train_step(state, batch, loss_fn)
-        print(f"Epoch {epoch + 1}, Loss: {loss}")
+            epoch_loss.append(loss)
+        avg_loss = jnp.mean(jnp.array(epoch_loss))
+        print(f"Epoch {epoch + 1}, Loss: {avg_loss}")
 
-    metrics = {"loss": loss}
+    metrics = {"loss": avg_loss}
     return state, metrics
