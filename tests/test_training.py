@@ -33,7 +33,7 @@ def test_train_step():
         return jnp.mean((logits - labels) ** 2)
 
     new_state, loss = train_step(state, batch, loss_fn)
-    assert jax.tree_util.tree_all(jax.tree_map(lambda x: x is not None, new_state.params))
+    assert jax.tree_util.tree_all(jax.tree_util.tree_map(lambda x: x is not None, new_state.params))
     assert jnp.all(loss >= 0)
 
 
@@ -59,7 +59,8 @@ def test_train_model():
     )
     assert final_state is not None
     assert "loss" in metrics
-    assert jnp.isscalar(metrics["loss"])
+    assert isinstance(metrics["loss"], jnp.ndarray)
+    assert metrics["loss"].shape == ()  # Check if it's a scalar (0-dimensional array)
 
 
 if __name__ == "__main__":
