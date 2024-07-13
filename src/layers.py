@@ -68,5 +68,6 @@ class TransformerLayer(nn.Module):
         input_text = self.tokenizer.decode(x, skip_special_tokens=True)
         inputs = self.tokenizer(input_text, return_tensors="jax")
         outputs = self.model.generate(**inputs, max_length=max_length)
-        output_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        output_text = self.tokenizer.decode(outputs[0],
+                                            skip_special_tokens=True)
         return self.tokenizer(output_text, return_tensors="jax")["input_ids"]
