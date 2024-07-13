@@ -1,9 +1,9 @@
 # Core dependencies
-jax==0.4.13
-jaxlib==0.4.13
-flax==0.7.0
-optax==0.1.7
-numpy
+jax==0.4.30
+jaxlib==0.4.30
+flax==0.8.5
+optax==0.2.3
+numpy==1.26.4
 scipy==1.10.1
 torch==2.3.1
 fairscale==0.4.6
