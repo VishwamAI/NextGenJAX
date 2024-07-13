@@ -53,6 +53,7 @@ def test_train_model():
         num_epochs=1,
         optimizer=optimizer,
         loss_fn=loss_fn,
+        learning_rate=learning_rate,
     )
     assert final_state is not None
     assert "loss" in metrics
