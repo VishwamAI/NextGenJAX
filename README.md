@@ -81,3 +81,4 @@ NextGenJAX is licensed under the MIT License. See the [LICENSE](LICENSE) file fo
 
 ## Acknowledgements
 NextGenJAX is inspired by the work of Google DeepMind and the JAX and Flax communities. We thank them for their contributions to the field of machine learning.
+Trigger CI/CD workflow run

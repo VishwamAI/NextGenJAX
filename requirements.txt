@@ -1,5 +1,6 @@
-jax==0.4.27
-jaxlib==0.4.27
+# Trivial change to trigger GitHub Actions workflow - ensure correct jax version is used
+jax==0.4.30
+jaxlib>=0.4.14,<0.4.31
 flax==0.8.5
 optax==0.2.3
 pytest==6.2.4
