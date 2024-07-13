@@ -13,6 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Print Commit SHA
+      run: echo "Current commit SHA: ${{ github.sha }}"
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
