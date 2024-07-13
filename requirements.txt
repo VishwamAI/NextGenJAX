@@ -4,6 +4,6 @@ flax==0.7.0
 optax==0.1.7
 numpy==1.21.0
 scipy==1.10.1
-torch==2.3.1+cpu
+torch==2.3.1
 fairscale==0.4.6
 transformers==4.30.2
