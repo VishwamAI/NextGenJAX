@@ -4,7 +4,6 @@ import pytest
 import optax
 from src.train import create_train_state, train_step, train_model
 from src.model import NextGenModel
-from src.optimizers import sgd
 
 
 def test_create_train_state():
@@ -13,7 +12,6 @@ def test_create_train_state():
     rng = jax.random.PRNGKey(0)
     learning_rate = 0.01
     optimizer = optax.sgd(learning_rate)
-    params = model.init(rng, jnp.ones([1, 28, 28, 1]))["params"]
     state = create_train_state(rng, model, optimizer)
     assert state.params is not None
     assert state.tx is not None
