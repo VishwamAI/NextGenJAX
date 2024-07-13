@@ -1,6 +1,6 @@
 ---
 # Add a comment to trigger a new GitHub Actions workflow run
-# This change is for debugging purposes only
+# This change is for debugging purposes only - Updated to trigger a new run
 name: Python package
 
 on:
