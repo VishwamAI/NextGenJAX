@@ -37,8 +37,7 @@ def test_train_step():
 def test_train_model():
     layers = [{"type": "dense", "features": 10, "activation": jnp.tanh}]
     model = NextGenModel(layers=layers)
-    learning_rate = 0.01
-    optimizer = optax.sgd(learning_rate)
+    optimizer = optax.sgd(0.01)
     dataset = [
         {"image": jnp.ones((1, 28, 28, 1)), "label": jnp.ones((1, 10))}
         for _ in range(10)
@@ -52,8 +51,7 @@ def test_train_model():
         dataset,
         num_epochs=1,
         optimizer=optimizer,
-        loss_fn=loss_fn,
-        learning_rate=learning_rate,
+        loss_fn=loss_fn
     )
     assert final_state is not None
     assert "loss" in metrics
