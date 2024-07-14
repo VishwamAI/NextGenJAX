@@ -67,12 +67,12 @@ jobs:
         python -c "import site; print(site.getsitepackages())"
         ls -R $(python -c "import site; print(site.getsitepackages()[0])")
         echo "::endgroup::"
-    - name: Print src/__init__.py contents
+    - name: Print src/nextgenjax/__init__.py contents
       run: |
-        echo "::group::Print src/__init__.py contents"
+        echo "::group::Print src/nextgenjax/__init__.py contents"
         set -x
-        echo "Contents of src/__init__.py:"
-        cat src/__init__.py
+        echo "Contents of src/nextgenjax/__init__.py:"
+        cat src/nextgenjax/__init__.py
         echo "::endgroup::"
     - name: List contents of src directory
       run: |
