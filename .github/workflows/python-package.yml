@@ -39,6 +39,15 @@ jobs:
       timeout-minutes: 20
     - name: Install nextgenjax
       run: pip install -e .
+    - name: Print installation info
+      run: |
+        echo "Installation directory:"
+        pip show nextgenjax
+        echo "Python path:"
+        python -c "import sys; print('\n'.join(sys.path))"
+    - name: Test nextgenjax import
+      run: |
+        python -c "import nextgenjax; print('nextgenjax imported successfully')"
     - name: List installed packages
       run: pip list
     - name: Lint with flake8
