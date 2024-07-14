@@ -12,6 +12,12 @@ import haiku as hk
 # Type alias for optimizer
 OptimizerType = optax.GradientTransformation
 
+def create_model(num_layers, hidden_size, num_heads, dropout_rate):
+    def _model(x, train=False):
+        model = NextGenModel(num_layers, hidden_size, num_heads, dropout_rate)
+        return model(x, train)
+    return hk.transform(_model)
+
 
 def create_train_state(
     rng: jax.random.PRNGKey,
@@ -54,13 +60,13 @@ def create_train_state(
     )
 
 
+@jax.jit
 def train_step(
     state: train_state.TrainState,
     batch: Dict[str, jnp.ndarray],
     loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float],
-    sequence_length: int,
-    hidden_size: int,
-) -> Tuple[train_state.TrainState, float]:
+    rng: jax.random.PRNGKey,
+) -> Tuple[train_state.TrainState, Dict[str, float], jax.random.PRNGKey]:
     """
     Performs a single training step.
 
@@ -69,34 +75,27 @@ def train_step(
         batch (Dict[str, jnp.ndarray]): A batch of training data.
         loss_fn (Callable[[jnp.ndarray, jnp.ndarray], float]): A function to
         compute the loss given the model's predictions and the true labels.
-        sequence_length (int): The sequence length for the input.
-        hidden_size (int): The hidden size of the model.
+        rng (jax.random.PRNGKey): The random number generator key.
 
     Returns:
-        Tuple[train_state.TrainState, float]: The updated training state and
-        the computed loss.
+        Tuple[train_state.TrainState, Dict[str, float], jax.random.PRNGKey]:
+        The updated training state, metrics, and new RNG key.
     """
 
-    def compute_loss(params):
-        # Get the actual shape of the input
-        actual_shape = batch["image"].shape
-        # Reshape only if necessary
-        if actual_shape != (-1, sequence_length, hidden_size):
-            image = batch["image"].reshape(-1, sequence_length, hidden_size)
-        else:
-            image = batch["image"]
-        logits = state.apply_fn({"params": params}, image)
+    def loss_fn(params):
+        dropout_rng, new_rng = jax.random.split(rng)
+        logits = state.apply_fn(params, dropout_rng, batch["image"], train=True)
         loss = loss_fn(logits, batch["label"])
-        return loss
+        return loss, (logits, new_rng)
 
-    grad_fn = value_and_grad(compute_loss)
-    loss, grads = grad_fn(state.params)
+    (loss, (logits, new_rng)), grads = jax.value_and_grad(loss_fn, has_aux=True)(state.params)
     state = state.apply_gradients(grads=grads)
-    return state, loss
+    metrics = {"loss": loss}
+    return state, metrics, new_rng
 
 
 def train_model(
-    model: Union[hk.Transformed, hk.Module],
+    model_params: Dict[str, Any],
     train_dataset: Any,
     num_epochs: int,
     optimizer: OptimizerType,
@@ -109,7 +108,7 @@ def train_model(
     Trains the model.
 
     Args:
-        model (Union[hk.Transformed, hk.Module]): The model to be trained.
+        model_params (Dict[str, Any]): Parameters for creating the model.
         train_dataset (Any): The training dataset.
         num_epochs (int): The number of epochs to train for.
         optimizer (OptimizerType): The optimizer to use.
@@ -127,6 +126,7 @@ def train_model(
         for batch in dataset:
             yield batch
 
+    model = create_model(model_params["num_layers"], hidden_size, model_params["num_heads"], model_params["dropout_rate"])
     rng, init_rng = jax.random.split(rng)
     state = create_train_state(init_rng, model, optimizer, hidden_size, sequence_length)
 
@@ -134,8 +134,9 @@ def train_model(
     for epoch in range(num_epochs):
         epoch_loss = []
         for batch in data_loader(train_dataset):
-            state, loss = train_step(state, batch, loss_fn, sequence_length, hidden_size)
-            epoch_loss.append(loss)
+            rng, step_rng = jax.random.split(rng)
+            state, metrics, rng = train_step(state, batch, loss_fn, step_rng)
+            epoch_loss.append(metrics["loss"])
         avg_loss = jnp.mean(jnp.array(epoch_loss))
         metrics_history.append({"loss": avg_loss})
         print(f"Epoch {epoch + 1}, Loss: {avg_loss}")
