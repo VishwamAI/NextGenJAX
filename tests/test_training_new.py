@@ -91,7 +91,7 @@ def test_train_model():
     num_epochs = 2
 
     final_state, metrics_history = train_model(
-        model, [batch], num_epochs, tx, loss_fn, hidden_size, rng
+        model, [batch], num_epochs, tx, loss_fn, rng
     )
 
     print("Final model parameter shapes:")
