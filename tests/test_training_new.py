@@ -1,7 +1,7 @@
 import jax.numpy as jnp
 from jax import random
 from nextgenjax.model import NextGenJAXModel
-from nextgenjax.training import create_train_state, train_step, train_model
+from nextgenjax.train import create_train_state, train_step, train_model
 
 
 def create_model():
