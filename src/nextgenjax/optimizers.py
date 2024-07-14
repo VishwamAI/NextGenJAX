@@ -149,7 +149,7 @@ def rmsprop(
     return init, update
 
 
-def custom_optimizer(
+def CustomOptimizer(
     learning_rate: float,
 ) -> Tuple[
     Callable[[Dict], Dict],
