@@ -3,7 +3,7 @@ import jax
 import jax.numpy as jnp
 import optax
 
-class NextGenJAXModel(hk.Module):
+class NextGenModel(hk.Module):
     def __init__(self, num_layers, hidden_size, num_heads, dropout_rate):
         super().__init__()
         self.num_layers = num_layers
@@ -37,7 +37,7 @@ class NextGenJAXModel(hk.Module):
 
 def create_model(num_layers, hidden_size, num_heads, dropout_rate):
     def _model(x, train=False):
-        model = NextGenJAXModel(num_layers, hidden_size, num_heads, dropout_rate)
+        model = NextGenModel(num_layers, hidden_size, num_heads, dropout_rate)
         return model(x, train)
     return hk.transform(_model)
 
