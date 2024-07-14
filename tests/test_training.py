@@ -2,6 +2,7 @@ import jax
 import jax.numpy as jnp
 import pytest
 import optax
+import haiku as hk
 from nextgenjax.model import NextGenModel
 from flax.training import train_state
 import logging
@@ -13,12 +14,14 @@ logger = logging.getLogger(__name__)
 
 def create_model():
     logger.debug("Creating model")
-    return NextGenModel(
-        num_layers=2,
-        hidden_size=4,  # Changed from 64 to 4 to match input channels
-        num_heads=4,
-        dropout_rate=0.1
-    )
+    def _model():
+        return NextGenModel(
+            num_layers=2,
+            hidden_size=4,  # Changed from 64 to 4 to match input channels
+            num_heads=4,
+            dropout_rate=0.1
+        )
+    return hk.transform(_model)
 
 def test_create_train_state():
     logger.debug("Starting test_create_train_state")
@@ -26,9 +29,9 @@ def test_create_train_state():
         model = create_model()
         logger.debug("Model created successfully")
 
-        params = model.init(
-            jax.random.PRNGKey(0), jnp.ones((1, 28, 28, 4))
-        )['params']
+        rng = jax.random.PRNGKey(0)
+        dummy_input = jnp.ones((1, 28, 28, 4))
+        params = model.init(rng, dummy_input)
         logger.debug("Model parameters initialized")
 
         tx = optax.adam(1e-3)
@@ -51,9 +54,9 @@ def test_train_step():
         model = create_model()
         logger.debug("Model created")
 
-        params = model.init(
-            jax.random.PRNGKey(0), jnp.ones((1, 28, 28, 4))
-        )['params']
+        rng = jax.random.PRNGKey(0)
+        dummy_input = jnp.ones((1, 28, 28, 4))
+        params = model.init(rng, dummy_input)
         logger.debug("Model parameters initialized")
 
         tx = optax.adam(1e-3)
@@ -67,7 +70,7 @@ def test_train_step():
         @jax.jit
         def train_step(state, batch):
             def loss_fn(params):
-                logits = state.apply_fn({'params': params}, batch['image'])
+                logits = model.apply(params, None, batch['image'])
                 # Assuming the model output needs to be reduced to match label shape
                 predicted = jnp.mean(logits, axis=-1, keepdims=True)
                 return jnp.mean((predicted - batch['label']) ** 2)

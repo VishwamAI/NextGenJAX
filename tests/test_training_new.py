@@ -1,16 +1,19 @@
 import jax.numpy as jnp
+import haiku as hk
 from jax import random
 from nextgenjax.model import NextGenModel
 from nextgenjax.train import create_train_state, train_step, train_model
 
 
 def create_model():
-    return NextGenModel(
-        num_layers=2,
-        hidden_size=4,  # Changed from 64 to 4 to match input channels
-        num_heads=4,
-        dropout_rate=0.1
-    )
+    def _model():
+        return NextGenModel(
+            num_layers=2,
+            hidden_size=4,
+            num_heads=4,
+            dropout_rate=0.1
+        )
+    return hk.transform(_model)
 
 
 def test_create_train_state():
@@ -19,6 +22,7 @@ def test_create_train_state():
     rng = random.PRNGKey(0)
 
     dummy_input = jnp.ones((1, 28, 28, 4))
+    params = model.init(rng, dummy_input)
     state = create_train_state(rng, model, dummy_input, learning_rate)
 
     assert 'params' in state
@@ -40,7 +44,7 @@ def test_train_step():
     state = create_train_state(rng, model, dummy_input, learning_rate)
 
     def loss_fn(params):
-        logits = state.apply_fn({'params': params}, batch['image'])
+        logits = model.apply(params, None, batch['image'])
         # Assuming the model output needs to be reduced to match label shape
         predicted = jnp.mean(logits, axis=-1, keepdims=True)
         return jnp.mean((predicted - batch['label']) ** 2)
@@ -66,7 +70,7 @@ def test_train_model():
     state = create_train_state(rng, model, dummy_input, learning_rate)
 
     def loss_fn(params):
-        logits = state.apply_fn({'params': params}, batch['image'])
+        logits = model.apply(params, None, batch['image'])
         # Assuming the model output needs to be reduced to match label shape
         predicted = jnp.mean(logits, axis=-1, keepdims=True)
         return jnp.mean((predicted - batch['label']) ** 2)
