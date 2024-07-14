@@ -1,7 +1,7 @@
 # Core dependencies
 jax==0.4.30
 jaxlib==0.4.30
-chex==0.1.7
+chex>=0.1.86
 dm-haiku==0.0.10
 fairscale==0.4.13
 flax==0.8.5
