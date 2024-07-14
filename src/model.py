@@ -1,15 +1,16 @@
+import haiku as hk
+import jax
 import jax.numpy as jnp
-import flax.linen as nn
 import optax
 
+class NextGenJAXModel(hk.Module):
+    def __init__(self, num_layers, hidden_size, num_heads, dropout_rate):
+        super().__init__()
+        self.num_layers = num_layers
+        self.hidden_size = hidden_size
+        self.num_heads = num_heads
+        self.dropout_rate = dropout_rate
 
-class NextGenJAXModel(nn.Module):
-    num_layers: int
-    hidden_size: int
-    num_heads: int
-    dropout_rate: float
-
-    @nn.compact
     def __call__(self, x, train: bool = False):
         for _ in range(self.num_layers):
             x = self.encoder_layer(x, train)
@@ -18,34 +19,27 @@ class NextGenJAXModel(nn.Module):
     def encoder_layer(self, x, train: bool):
         # Self-attention
         residual = x
-        x = nn.LayerNorm()(x)
-        x = nn.MultiHeadDotProductAttention(num_heads=self.num_heads)(x, x)
-        x = nn.Dropout(rate=self.dropout_rate, deterministic=not train)(x)
+        x = hk.LayerNorm(axis=-1, create_scale=True, create_offset=True)(x)
+        x = hk.MultiHeadAttention(num_heads=self.num_heads, key_size=self.hidden_size // self.num_heads, w_init_scale=2.0)(x, x, x)
+        x = hk.dropout(hk.next_rng_key(), self.dropout_rate, x) if train else x
         x = x + residual
 
         # Feed-forward
         residual = x
-        x = nn.LayerNorm()(x)
-        x = nn.Dense(features=self.hidden_size * 4)(x)
-        x = nn.gelu(x)
-        x = nn.Dense(features=self.hidden_size)(x)
-        x = nn.Dropout(rate=self.dropout_rate, deterministic=not train)(x)
+        x = hk.LayerNorm(axis=-1, create_scale=True, create_offset=True)(x)
+        x = hk.Linear(output_size=self.hidden_size * 4)(x)
+        x = jax.nn.gelu(x)
+        x = hk.Linear(output_size=self.hidden_size)(x)
+        x = hk.dropout(hk.next_rng_key(), self.dropout_rate, x) if train else x
         x = x + residual
 
         return x
 
-
-def init_model(rng, input_shape, num_layers, hidden_size, num_heads, dropout_rate):
-    model = NextGenJAXModel(num_layers, hidden_size, num_heads, dropout_rate)
-    params = model.init(rng, jnp.ones(input_shape))
-    return params
-
-
-def forward(params, inputs, num_layers, hidden_size, num_heads, dropout_rate,
-            train: bool = False):
-    model = NextGenJAXModel(num_layers, hidden_size, num_heads, dropout_rate)
-    return model.apply({'params': params}, inputs, train=train)
-
+def create_model(num_layers, hidden_size, num_heads, dropout_rate):
+    def _model(x, train=False):
+        model = NextGenJAXModel(num_layers, hidden_size, num_heads, dropout_rate)
+        return model(x, train)
+    return hk.transform(_model)
 
 def create_optimizer(learning_rate: float = 1e-3):
     return optax.adam(learning_rate)
