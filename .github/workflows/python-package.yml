@@ -45,6 +45,9 @@ jobs:
         pip show nextgenjax
         echo "Python path:"
         python -c "import sys; print('\n'.join(sys.path))"
+    - name: Print sys.path
+      run: |
+        python -c "import sys; print('sys.path:', sys.path)"
     - name: Test nextgenjax import
       run: |
         python -c "import nextgenjax; print('nextgenjax imported successfully')"
