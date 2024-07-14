@@ -76,8 +76,16 @@ jobs:
         pip list
         pip list --path src
         python -c "import sys; print(sys.path)"
+    - name: Confirm working directory and PYTHONPATH
+      run: |
+        cd ${{ github.workspace }}
+        echo "Current working directory: $(pwd)"
+        echo "Contents of src directory:"
+        ls -R src
+        echo "PYTHONPATH: $PYTHONPATH"
     - name: Test nextgenjax import
       run: |
+        python -c "import sys; print(sys.path)"
         python -c "import nextgenjax; print('nextgenjax imported successfully')" || { echo "Import failed with error:"; python -c "import nextgenjax" 2>&1; exit 1; }
     - name: List installed packages
       run: pip list
