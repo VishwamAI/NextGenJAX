@@ -8,3 +8,4 @@ scipy>=1.10.1
 fairscale>=0.4.6
 transformers>=4.30.2
 chex>=0.1.86
+-e .

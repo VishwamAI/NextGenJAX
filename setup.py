@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="NextGenJAX",
+    name="nextgenjax",
     version="0.1.0",
     author="kasinadhsarma",
     author_email="kasinadhsarma@gmail.com",
@@ -12,13 +12,15 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     install_requires=[
-        "jax==0.4.27",
-        "jaxlib==0.4.27",
+        "jax==0.4.30",
+        "jaxlib==0.4.30",
         "flax==0.8.5",
         "optax==0.2.3",
-        "numpy==1.26.4",
-        "scipy==1.10.1",
-        "fairscale==0.4.6",
+        "numpy>=1.26.4",
+        "scipy>=1.10.1",
+        "fairscale>=0.4.6",
+        "transformers>=4.30.2",
+        "chex>=0.1.86",
     ],
     extras_require={
         "dev": [
