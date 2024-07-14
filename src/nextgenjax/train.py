@@ -94,9 +94,10 @@ def train_model(
     train_dataset: Any,
     num_epochs: int,
     optimizer: OptimizerType,
-    loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float],
+    loss_fn: Callable[[jnp.ndarray, Dict[str, jnp.ndarray], jax.random.PRNGKey], float],
     hidden_size: int,
     sequence_length: int,
+    rng: jax.random.PRNGKey,
 ) -> Tuple[train_state.TrainState, Dict[str, float]]:
     """
     Trains the model.
@@ -120,15 +121,18 @@ def train_model(
             yield batch
 
     rng = jax.random.PRNGKey(0)
-    state = create_train_state(rng, model, optimizer, hidden_size, sequence_length)
+    rng, init_rng = jax.random.split(rng)
+    state = create_train_state(init_rng, model, optimizer, hidden_size, sequence_length)
 
+    metrics_history = []
     for epoch in range(num_epochs):
         epoch_loss = []
         for batch in data_loader(train_dataset):
-            state, loss = train_step(state, batch, loss_fn, sequence_length, hidden_size)
+            rng, step_rng = jax.random.split(rng)
+            state, loss = train_step(state, batch, loss_fn, sequence_length, hidden_size, step_rng)
             epoch_loss.append(loss)
         avg_loss = jnp.mean(jnp.array(epoch_loss))
+        metrics_history.append({"loss": avg_loss})
         print(f"Epoch {epoch + 1}, Loss: {avg_loss}")
 
-    metrics = {"loss": avg_loss}
-    return state, metrics
+    return state, metrics_history

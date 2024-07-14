@@ -59,7 +59,7 @@ def test_train_step():
         return jnp.mean((predicted - batch['label']) ** 2)
 
     rng, subkey = random.split(rng)
-    new_state, metrics = train_step(state, batch, subkey, loss_fn, lambda x: {})  # Add a dummy metrics_fn
+    new_state, metrics = train_step(state, batch, subkey, loss_fn, lambda x: {})
 
     print("Updated model parameter shapes:")
     tree_util.tree_map(lambda x: print(f"{x.shape}"), new_state.params)
@@ -79,7 +79,7 @@ def test_train_model():
     }
 
     def loss_fn(params, batch, rng):
-        logits = model.apply(params, rng, batch['image'])
+        logits = model.apply(params, rng, batch['image'], train=True)
         # Assuming the model output needs to be reduced to match label shape
         predicted = jnp.mean(logits, axis=-1, keepdims=True)
         return jnp.mean((predicted - batch['label']) ** 2)

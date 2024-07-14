@@ -17,9 +17,11 @@ logger = logging.getLogger(__name__)
 def find_layer_norm_scale(params):
     found = []
     def find_scale(path, value):
+        if isinstance(path[-1], jax.tree_util.DictKey):
+            path = tuple(str(p) for p in path)
         if 'layer_norm/scale' in '/'.join(path):
             found.append(value)
-    tree_util.tree_map_with_path(find_scale, params)
+    jax.tree_util.tree_map_with_path(find_scale, params)
     return found[0] if found else None
 
 # Define constants
@@ -52,7 +54,7 @@ def test_create_train_state():
         logger.debug("Optimizer created")
 
         params = model.init(init_rng, dummy_input)
-        state = create_train_state(params, model.apply, optimizer)
+        state = create_train_state(init_rng, model, optimizer, hidden_size, sequence_length)
         logger.debug("TrainState created")
 
         print("Model parameter shapes:")
