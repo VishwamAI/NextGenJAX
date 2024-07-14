@@ -163,6 +163,16 @@ jobs:
       run: |
         echo "::group::Run all tests"
         set -x
+        echo "Current working directory: $(pwd)"
+        echo "Contents of current directory:"
+        ls -R
+        echo "Contents of src directory:"
+        ls -R src
+        echo "PYTHONPATH: $PYTHONPATH"
+        echo "Python sys.path:"
+        python -c "import sys; print('\n'.join(sys.path))"
+        echo "Attempting to import nextgenjax:"
+        python -c "import nextgenjax; print(f'nextgenjax imported successfully from {nextgenjax.__file__}')" || echo "Failed to import nextgenjax"
         pytest tests/ -v
         echo "::endgroup::"
       timeout-minutes: 20
