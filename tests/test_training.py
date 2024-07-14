@@ -108,7 +108,7 @@ def test_train_step():
 def test_train_model():
     logger.debug("Starting test_train_model")
     try:
-        model = create_model(num_layers=2, hidden_size=4, num_heads=4, dropout_rate=0.1)
+        model = create_model(num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1)
         logger.debug("Model created")
 
         optimizer = optax.adam(1e-3)
