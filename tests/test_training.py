@@ -90,8 +90,9 @@ def test_train_model():
     rng = jax.random.PRNGKey(0)
     dummy_input = jnp.ones((1, 28, 28, 4))
     params = model.init(rng, dummy_input)['params']
-    final_state, metrics = train_model(params, model, dataset,
-                                       num_epochs=1, tx=tx)
+    final_state, metrics = train_model(
+        params, model, dataset, num_epochs=1, tx=tx
+    )
     assert isinstance(final_state, train_state.TrainState)
     assert "loss" in metrics
     assert isinstance(metrics["loss"], jnp.ndarray)
