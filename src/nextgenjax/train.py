@@ -24,25 +24,27 @@ def create_train_state(
 
     Args:
         rng (jax.random.PRNGKey): The random number generator key.
-        model (Any): The model to be trained (Haiku transformed, regular module, or TrainState).
+        model (Any): The model to be trained (Haiku transformed or regular module).
         optimizer (OptimizerType): The optimizer to use.
         hidden_size (int): The hidden size of the model.
         sequence_length (int): The sequence length for the dummy input. Default is 64.
 
     Returns:
         train_state.TrainState: The initial training state.
-    """
-    if isinstance(model, train_state.TrainState):
-        return model
 
+    Raises:
+        TypeError: If the model is neither a Haiku transformed function nor a regular Haiku module.
+    """
     dummy_input = jnp.ones([1, sequence_length, hidden_size])
 
     if isinstance(model, hk.Transformed):
         params = model.init(rng, dummy_input)
-        apply_fn = model.apply
-    else:
+        apply_fn = lambda params, rng, *args, **kwargs: model.apply(params, rng, *args, **kwargs)
+    elif isinstance(model, hk.Module):
         params = model.init(rng, dummy_input)["params"]
-        apply_fn = model.apply
+        apply_fn = lambda params, rng, *args, **kwargs: model.apply({"params": params}, rng, *args, **kwargs)
+    else:
+        raise TypeError("Model must be either a Haiku transformed function or a regular Haiku module")
 
     return train_state.TrainState.create(
         apply_fn=apply_fn,
