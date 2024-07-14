@@ -15,12 +15,15 @@ logger = logging.getLogger(__name__)
 
 def create_model(num_layers, hidden_size, num_heads, dropout_rate):
     logger.debug("Creating model")
-    return NextGenModel(
-        num_layers=num_layers,
-        hidden_size=hidden_size,
-        num_heads=num_heads,
-        dropout_rate=dropout_rate
-    )
+    def _model(x, train=False):
+        model = NextGenModel(
+            num_layers=num_layers,
+            hidden_size=hidden_size,
+            num_heads=num_heads,
+            dropout_rate=dropout_rate
+        )
+        return model(x, train)
+    return hk.transform(_model)
 
 def test_create_train_state():
     logger.debug("Starting test_create_train_state")
@@ -29,14 +32,11 @@ def test_create_train_state():
         logger.debug("Model created successfully")
 
         rng = jax.random.PRNGKey(0)
-        dummy_input = jnp.ones((1, 28, 28, 4))
-        params = model.init(rng, dummy_input)
-        logger.debug("Model parameters initialized")
-
-        tx = optax.adam(1e-3)
+        dummy_input = jnp.ones((1, 28, 28, 1))
+        optimizer = optax.adam(1e-3)
         logger.debug("Optimizer created")
 
-        state = create_train_state(model, tx)
+        state = create_train_state(rng, model, optimizer)
         logger.debug("TrainState created")
 
         assert isinstance(state, train_state.TrainState)
@@ -52,40 +52,39 @@ def test_train_step():
         logger.debug("Model created")
 
         rng = jax.random.PRNGKey(0)
-        dummy_input = jnp.ones((1, 28, 28, 4))
-        params = model.init(rng, dummy_input)
-        logger.debug("Model parameters initialized")
-
-        tx = optax.adam(1e-3)
+        optimizer = optax.adam(1e-3)
         logger.debug("Optimizer created")
 
-        state = create_train_state(model, tx)
+        state = create_train_state(rng, model, optimizer)
         logger.debug("TrainState created")
 
         @jax.jit
         def train_step(state, batch, rng):
             def loss_fn(params):
-                logits = model.apply({'params': params}, batch['image'])
+                logits = state.apply_fn(params, rng, batch['image'])
                 # Assuming the model output needs to be reduced to match label shape
                 predicted = jnp.mean(logits, axis=-1, keepdims=True)
-                return jnp.mean((predicted - batch['label']) ** 2)
-            loss, grads = jax.value_and_grad(loss_fn)(state.params)
+                loss = jnp.mean((predicted - batch['label']) ** 2)
+                return loss, logits
+
+            grad_fn = jax.value_and_grad(loss_fn, has_aux=True)
+            (loss, _), grads = grad_fn(state.params)
             state = state.apply_gradients(grads=grads)
-            return state, loss
+            return state, {'loss': loss}
 
         logger.debug("train_step function defined")
 
         batch = {
-            'image': jnp.ones((32, 28, 28, 4)),
+            'image': jnp.ones((32, 28, 28, 1)),
             'label': jnp.ones((32, 1))
         }
         logger.debug("Batch created")
 
-        new_state, loss = train_step(state, batch, rng)
-        logger.debug(f"train_step executed. Loss: {loss}")
+        new_state, metrics = train_step(state, batch, rng)
+        logger.debug(f"train_step executed. Loss: {metrics['loss']}")
 
         assert isinstance(new_state, train_state.TrainState)
-        assert isinstance(loss, jnp.ndarray)
+        assert isinstance(metrics['loss'], jnp.ndarray)
         logger.debug("test_train_step completed successfully")
     except Exception as e:
         logger.error(f"Error in test_train_step: {str(e)}")
@@ -97,11 +96,11 @@ def test_train_model():
         model = create_model(num_layers=2, hidden_size=4, num_heads=4, dropout_rate=0.1)
         logger.debug("Model created")
 
-        tx = optax.adam(1e-3)
+        optimizer = optax.adam(1e-3)
         logger.debug("Optimizer created")
 
         dataset = [
-            {"image": jnp.ones((1, 28, 28, 4)), "label": jnp.ones((1, 1))}
+            {"image": jnp.ones((1, 28, 28, 1)), "label": jnp.zeros(1, dtype=jnp.int32)}
             for _ in range(10)
         ]
         logger.debug("Dataset created")
@@ -109,42 +108,36 @@ def test_train_model():
         @jax.jit
         def train_step(state, batch, rng):
             def loss_fn(params):
-                logits = model(batch['image'])
-                # Assuming the model output needs to be reduced to match label shape
-                predicted = jnp.mean(logits, axis=-1, keepdims=True)
-                return jnp.mean((predicted - batch['label']) ** 2)
-            loss, grads = jax.value_and_grad(loss_fn)(state.params)
+                logits = state.apply_fn(params, rng, batch['image'])
+                loss = optax.softmax_cross_entropy_with_integer_labels(logits, batch['label']).mean()
+                return loss, logits
+            grad_fn = jax.value_and_grad(loss_fn, has_aux=True)
+            (loss, logits), grads = grad_fn(state.params)
             state = state.apply_gradients(grads=grads)
-            return state, loss
+            return state, {'loss': loss}
 
         logger.debug("train_step function defined")
 
-        def train_model(model, dataset, num_epochs, tx):
+        def train_model(model, dataset, num_epochs, optimizer):
             rng = jax.random.PRNGKey(0)
-            dummy_input = jnp.ones((1, 28, 28, 4))
-            params = model.init(rng, dummy_input)
-            state = create_train_state(model, tx)
+            state = create_train_state(rng, model, optimizer)
             logger.debug("Initial TrainState created")
 
             for epoch in range(num_epochs):
                 logger.debug(f"Starting epoch {epoch + 1}")
                 for batch in dataset:
-                    state, loss = train_step(state, batch, rng)
-                logger.debug(f"Epoch {epoch + 1} completed. Final loss: {loss}")
+                    state, metrics = train_step(state, batch, rng)
+                logger.debug(f"Epoch {epoch + 1} completed. Final loss: {metrics['loss']}")
 
-            return state, {"loss": loss}
+            return state, metrics
 
         logger.debug("train_model function defined")
 
         rng = jax.random.PRNGKey(0)
-        dummy_input = jnp.ones((1, 28, 28, 4))
-        params = model.init(rng, dummy_input)
-        logger.debug("Model parameters initialized")
-
-        state = create_train_state(model, tx)
+        state = create_train_state(rng, model, optimizer)
         logger.debug("TrainState created")
 
-        final_state, metrics = train_model(model, dataset, num_epochs=1, tx=tx)
+        final_state, metrics = train_model(model, dataset, num_epochs=1, optimizer=optimizer)
         logger.debug(f"train_model executed. Final loss: {metrics['loss']}")
 
         assert isinstance(final_state, train_state.TrainState)
