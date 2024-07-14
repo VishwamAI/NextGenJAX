@@ -21,6 +21,7 @@ setup(
         "fairscale>=0.4.6",
         "transformers>=4.30.2",
         "chex>=0.1.86",
+        "dm-haiku>=0.0.5",
     ],
     extras_require={
         "dev": [
