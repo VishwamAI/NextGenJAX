@@ -27,10 +27,11 @@ def create_train_state(
     Returns:
         train_state.TrainState: The initial training state.
     """
-    params = model.init(rng, jnp.ones([1, 28, 28, 1]))["params"]
+    transformed_model = model.create_model()
+    params = transformed_model.init(rng, jnp.ones([1, 28, 28, 1]))["params"]
 
     return train_state.TrainState.create(
-        apply_fn=model.apply,
+        apply_fn=transformed_model.apply,
         params=params,
         tx=optimizer,
     )
