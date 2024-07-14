@@ -75,13 +75,6 @@ def test_train_model():
         'label': jnp.ones((batch_size, 1))
     }
 
-    dummy_input = jnp.ones((1, sequence_length, hidden_size))
-    tx = optax.adam(learning_rate)
-    state = create_train_state(rng, model, tx, hidden_size)
-
-    print("Initial model parameter shapes:")
-    tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
-
     def loss_fn(params, batch, rng):
         logits = model.apply(params, rng, batch['image'])
         # Assuming the model output needs to be reduced to match label shape
@@ -91,7 +84,13 @@ def test_train_model():
     num_epochs = 2
 
     final_state, metrics_history = train_model(
-        state, [batch], num_epochs, loss_fn, lambda x, y: {}, rng  # Add a dummy metrics_fn
+        model,  # Pass the transformed model instead of the state
+        [batch],
+        num_epochs,
+        optax.adam(learning_rate),  # Pass the optimizer
+        loss_fn,
+        hidden_size,
+        sequence_length
     )
 
     print("Final model parameter shapes:")
@@ -99,4 +98,4 @@ def test_train_model():
 
     assert len(metrics_history) == num_epochs
     assert all('loss' in epoch_metrics for epoch_metrics in metrics_history)
-    assert final_state.step == state.step + (num_epochs * len([batch]))
+    assert final_state.step == num_epochs * len([batch])
