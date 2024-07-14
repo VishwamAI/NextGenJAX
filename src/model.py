@@ -1,6 +1,7 @@
 import jax.numpy as jnp
 import flax.linen as nn
 from typing import Any
+import optax
 
 
 class NextGenJAXModel(nn.Module):
@@ -10,19 +11,29 @@ class NextGenJAXModel(nn.Module):
     dropout_rate: float
 
     @nn.compact
-    def __call__(self, x):
+    def __call__(self, x, train: bool = False):
         for _ in range(self.num_layers):
-            x = self.layer_factory()(x)
+            x = self.encoder_layer(x, train)
         return x
 
-    def layer_factory(self):
-        return nn.Sequential([
-            nn.LayerNorm(),
-            nn.MultiHeadDotProductAttention(num_heads=self.num_heads),
-            nn.Dropout(rate=self.dropout_rate),
-            nn.Dense(features=self.hidden_size),
-            nn.Dropout(rate=self.dropout_rate)
-        ])
+    def encoder_layer(self, x, train: bool):
+        # Self-attention
+        residual = x
+        x = nn.LayerNorm()(x)
+        x = nn.MultiHeadDotProductAttention(num_heads=self.num_heads)(x, x)
+        x = nn.Dropout(rate=self.dropout_rate, deterministic=not train)(x)
+        x = x + residual
+
+        # Feed-forward
+        residual = x
+        x = nn.LayerNorm()(x)
+        x = nn.Dense(features=self.hidden_size * 4)(x)
+        x = nn.gelu(x)
+        x = nn.Dense(features=self.hidden_size)(x)
+        x = nn.Dropout(rate=self.dropout_rate, deterministic=not train)(x)
+        x = x + residual
+
+        return x
 
 
 def init_model(rng, input_shape, num_layers, hidden_size, num_heads, dropout_rate):
@@ -31,24 +42,10 @@ def init_model(rng, input_shape, num_layers, hidden_size, num_heads, dropout_rat
     return params
 
 
-def forward(params, inputs, num_layers, hidden_size, num_heads, dropout_rate):
+def forward(params, inputs, num_layers, hidden_size, num_heads, dropout_rate, train: bool = False):
     model = NextGenJAXModel(num_layers, hidden_size, num_heads, dropout_rate)
-    return model.apply({'params': params}, inputs)
+    return model.apply({'params': params}, inputs, train=train)
 
 
-class CustomFlaxLayer(nn.Module):
-    features: int
-
-    @nn.compact
-    def __call__(self, x):
-        # Implement custom layer logic here
-        return x
-
-
-class TransformerFlaxLayer(nn.Module):
-    model_name: str
-
-    @nn.compact
-    def __call__(self, x, max_length=50):
-        # Implement transformer layer logic here
-        return x
+def create_optimizer(learning_rate: float = 1e-3):
+    return optax.adam(learning_rate)
