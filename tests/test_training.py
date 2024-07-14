@@ -4,6 +4,7 @@ import pytest
 import optax
 import haiku as hk
 from nextgenjax.model import NextGenModel
+from nextgenjax.train import create_train_state
 from flax.training import train_state
 import logging
 
@@ -38,9 +39,7 @@ def test_create_train_state():
         tx = optax.adam(1e-3)
         logger.debug("Optimizer created")
 
-        state = train_state.TrainState.create(
-            apply_fn=model.apply, params=params, tx=tx
-        )
+        state = create_train_state(params, model.apply, tx)
         logger.debug("TrainState created")
 
         assert isinstance(state, train_state.TrainState)
@@ -63,15 +62,13 @@ def test_train_step():
         tx = optax.adam(1e-3)
         logger.debug("Optimizer created")
 
-        state = train_state.TrainState.create(
-            apply_fn=model.apply, params=params, tx=tx
-        )
+        state = create_train_state(params, model.apply, tx)
         logger.debug("TrainState created")
 
         @jax.jit
-        def train_step(state, batch):
+        def train_step(state, batch, rng):
             def loss_fn(params):
-                logits = model.apply(params, None, batch['image'])
+                logits = model.apply(params, rng, batch['image'])
                 # Assuming the model output needs to be reduced to match label shape
                 predicted = jnp.mean(logits, axis=-1, keepdims=True)
                 return jnp.mean((predicted - batch['label']) ** 2)
@@ -113,9 +110,9 @@ def test_train_model():
         logger.debug("Dataset created")
 
         @jax.jit
-        def train_step(state, batch):
+        def train_step(state, batch, rng):
             def loss_fn(params):
-                logits = state.apply_fn({'params': params}, batch['image'])
+                logits = state.apply_fn({'params': params}, rng, batch['image'])
                 # Assuming the model output needs to be reduced to match label shape
                 predicted = jnp.mean(logits, axis=-1, keepdims=True)
                 return jnp.mean((predicted - batch['label']) ** 2)
@@ -126,9 +123,7 @@ def test_train_model():
         logger.debug("train_step function defined")
 
         def train_model(params, model, dataset, num_epochs, tx):
-            state = train_state.TrainState.create(
-                apply_fn=model.apply, params=params, tx=tx
-            )
+            state = create_train_state(params, model.apply, tx)
             logger.debug("Initial TrainState created")
 
             for epoch in range(num_epochs):
@@ -146,8 +141,10 @@ def test_train_model():
         params = model.init(rng, dummy_input)
         logger.debug("Model parameters initialized")
 
-        final_state, metrics = train_model(params, model, dataset,
-                                           num_epochs=1, tx=tx)
+        state = create_train_state(params, model.apply, tx)
+        logger.debug("TrainState created")
+
+        final_state, metrics = train_model(state, dataset, num_epochs=1)
         logger.debug(f"train_model executed. Final loss: {metrics['loss']}")
 
         assert isinstance(final_state, train_state.TrainState)

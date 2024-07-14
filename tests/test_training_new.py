@@ -21,7 +21,7 @@ def test_create_train_state():
     dummy_input = jnp.ones((1, 28, 28, 4))
     params = model.init(rng, dummy_input)
     tx = optax.adam(learning_rate)
-    state = create_train_state(params, model.apply, tx)
+    state = create_train_state(params, model.apply, tx, rng)
 
     assert 'params' in state
     assert 'opt_state' in state
@@ -41,10 +41,10 @@ def test_train_step():
     dummy_input = jnp.ones((1, 28, 28, 4))
     params = model.init(rng, dummy_input)
     tx = optax.adam(learning_rate)
-    state = create_train_state(params, model.apply, tx)
+    state = create_train_state(params, model.apply, tx, rng)
 
     def loss_fn(params):
-        logits = model.apply(params, None, batch['image'])
+        logits = model.apply(params, rng, batch['image'])
         # Assuming the model output needs to be reduced to match label shape
         predicted = jnp.mean(logits, axis=-1, keepdims=True)
         return jnp.mean((predicted - batch['label']) ** 2)
@@ -69,10 +69,10 @@ def test_train_model():
     dummy_input = jnp.ones((1, 28, 28, 4))
     params = model.init(rng, dummy_input)
     tx = optax.adam(learning_rate)
-    state = create_train_state(params, model.apply, tx)
+    state = create_train_state(params, model.apply, tx, rng)
 
     def loss_fn(params):
-        logits = model.apply(params, None, batch['image'])
+        logits = model.apply(params, rng, batch['image'])
         # Assuming the model output needs to be reduced to match label shape
         predicted = jnp.mean(logits, axis=-1, keepdims=True)
         return jnp.mean((predicted - batch['label']) ** 2)
