@@ -2,9 +2,9 @@ import jax
 import jax.numpy as jnp
 import pytest
 import optax
-import flax.linen as nn
 from NextGenJAX import NextGenJAXModel
 from flax.training import train_state
+
 
 def create_model():
     return NextGenJAXModel(
@@ -14,18 +14,24 @@ def create_model():
         dropout_rate=0.1
     )
 
+
 def test_create_train_state():
     model = create_model()
     params = model.init(jax.random.PRNGKey(0), jnp.ones((1, 28, 28, 1)))['params']
     tx = optax.adam(1e-3)
-    state = train_state.TrainState.create(apply_fn=model.apply, params=params, tx=tx)
+    state = train_state.TrainState.create(
+        apply_fn=model.apply, params=params, tx=tx
+    )
     assert isinstance(state, train_state.TrainState)
+
 
 def test_train_step():
     model = create_model()
     params = model.init(jax.random.PRNGKey(0), jnp.ones((1, 28, 28, 1)))['params']
     tx = optax.adam(1e-3)
-    state = train_state.TrainState.create(apply_fn=model.apply, params=params, tx=tx)
+    state = train_state.TrainState.create(
+        apply_fn=model.apply, params=params, tx=tx
+    )
 
     @jax.jit
     def train_step(state, batch):
@@ -43,6 +49,7 @@ def test_train_step():
     new_state, loss = train_step(state, batch)
     assert isinstance(new_state, train_state.TrainState)
     assert isinstance(loss, jnp.ndarray)
+
 
 def test_train_model():
     model = create_model()
@@ -62,7 +69,9 @@ def test_train_model():
         return state, loss
 
     def train_model(params, model, dataset, num_epochs, tx):
-        state = train_state.TrainState.create(apply_fn=model.apply, params=params, tx=tx)
+        state = train_state.TrainState.create(
+            apply_fn=model.apply, params=params, tx=tx
+        )
 
         for epoch in range(num_epochs):
             for batch in dataset:
@@ -80,6 +89,7 @@ def test_train_model():
     assert "loss" in metrics
     assert isinstance(metrics["loss"], jnp.ndarray)
     assert metrics["loss"].shape == ()
+
 
 if __name__ == "__main__":
     pytest.main()

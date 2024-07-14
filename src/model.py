@@ -4,6 +4,7 @@ from typing import Any
 from .layers import DenseLayer, ConvolutionalLayer, TransformerLayer
 from .custom_layers import CustomLayer
 
+
 class NextGenJAXModel(nn.Module):
     config: Any
 
@@ -30,14 +31,17 @@ class NextGenJAXModel(nn.Module):
         else:
             raise ValueError(f"Unsupported layer type: {layer_config['type']}")
 
+
 def init_model(rng, input_shape, config):
     model = NextGenJAXModel(config)
     params = model.init(rng, jnp.ones(input_shape))
     return params
 
+
 def forward(params, inputs, config):
     model = NextGenJAXModel(config)
     return model.apply({'params': params}, inputs)
+
 
 class CustomFlaxLayer(nn.Module):
     features: int
@@ -46,6 +50,7 @@ class CustomFlaxLayer(nn.Module):
     def __call__(self, x):
         # Implement custom layer logic here
         return x
+
 
 class TransformerFlaxLayer(nn.Module):
     model_name: str
