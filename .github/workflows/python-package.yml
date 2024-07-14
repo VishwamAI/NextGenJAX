@@ -19,6 +19,7 @@ jobs:
     - name: Cache pip dependencies
       uses: actions/cache@v3
       with:
+        node-version: '20'
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
         restore-keys: |
@@ -83,20 +84,9 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Print PYTHONPATH
       run: echo $PYTHONPATH
-    - name: Run individual test files
-      run: |
-        for test_file in tests/*.py; do
-          echo "Running test file: $test_file"
-          pytest $test_file -v || echo "Test file $test_file failed"
-        done
-    - name: Check for large outputs
-      run: |
-        find . -type f -size +1M | while read file; do
-          echo "Large file detected: $file ($(du -h "$file" | cut -f1))"
-        done
     - name: Run all tests
       run: |
-        pytest src tests -v
+        pytest tests/ -v
       timeout-minutes: 20
 
   cuda-tests:
