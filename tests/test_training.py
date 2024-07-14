@@ -46,11 +46,13 @@ def test_create_train_state():
         logger.debug("Model created successfully")
 
         rng = jax.random.PRNGKey(0)
+        rng, init_rng = jax.random.split(rng)
         dummy_input = jnp.ones((1, sequence_length, hidden_size))
         optimizer = optax.adam(1e-3)
         logger.debug("Optimizer created")
 
-        state = create_train_state(rng, model, optimizer, hidden_size)
+        params = model.init(init_rng, dummy_input)
+        state = create_train_state(params, model.apply, optimizer)
         logger.debug("TrainState created")
 
         print("Model parameter shapes:")
@@ -79,7 +81,8 @@ def test_train_step():
         optimizer = optax.adam(1e-3)
         logger.debug("Optimizer created")
 
-        state = create_train_state(rng, model, optimizer, hidden_size)
+        params = model.init(rng, jnp.ones((1, sequence_length, hidden_size)))
+        state = create_train_state(params, model.apply, optimizer)
         logger.debug("TrainState created")
 
         print("Initial model parameter shapes:")
@@ -94,7 +97,8 @@ def test_train_step():
         @jax.jit
         def train_step(state, batch, rng):
             def loss_fn(params):
-                logits = state.apply_fn(params, rng, batch['image'])
+                rng, dropout_rng = jax.random.split(rng)
+                logits = state.apply_fn(params, dropout_rng, batch['image'], train=True)
                 # Assuming the model output needs to be reduced to match label shape
                 predicted = jnp.mean(logits, axis=-1, keepdims=True)
                 loss = jnp.mean((predicted - batch['label']) ** 2)
@@ -113,7 +117,8 @@ def test_train_step():
         }
         logger.debug("Batch created")
 
-        new_state, metrics = train_step(state, batch, rng)
+        rng, step_rng = jax.random.split(rng)
+        new_state, metrics = train_step(state, batch, step_rng)
         logger.debug(f"train_step executed. Loss: {metrics['loss']}")
 
         print("Updated model parameter shapes:")
@@ -162,7 +167,8 @@ def test_train_model():
 
         def train_model(model, dataset, num_epochs, optimizer):
             rng = jax.random.PRNGKey(0)
-            state = create_train_state(rng, model, optimizer, hidden_size)
+            rng, init_rng = jax.random.split(rng)
+            state = create_train_state(init_rng, model, optimizer, hidden_size)
             logger.debug("Initial TrainState created")
             print("Initial model parameter shapes:")
             jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
@@ -170,7 +176,8 @@ def test_train_model():
             for epoch in range(num_epochs):
                 logger.debug(f"Starting epoch {epoch + 1}")
                 for batch in dataset:
-                    state, metrics = train_step(state, batch, rng)
+                    rng, step_key = jax.random.split(rng)
+                    state, metrics = train_step(state, batch, step_key)
                 logger.debug(f"Epoch {epoch + 1} completed. Final loss: {metrics['loss']}")
 
             print("Final model parameter shapes:")
@@ -180,7 +187,10 @@ def test_train_model():
         logger.debug("train_model function defined")
 
         rng = jax.random.PRNGKey(0)
-        state = create_train_state(rng, model, optimizer, hidden_size)
+        rng, init_rng = jax.random.split(rng)
+        dummy_input = jnp.ones((1, sequence_length, hidden_size))
+        params = model.init(init_rng, dummy_input)
+        state = create_train_state(params, model.apply, optimizer)
         logger.debug("TrainState created")
         print("Initial model parameter shapes:")
         jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)

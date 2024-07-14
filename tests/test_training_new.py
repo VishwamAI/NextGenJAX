@@ -21,10 +21,11 @@ def test_create_train_state():
     model = create_model(num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1)
     learning_rate = 0.001
     rng = random.PRNGKey(0)
+    rng, init_rng = random.split(rng)
 
     dummy_input = jnp.ones((1, sequence_length, hidden_size))
     tx = optax.adam(learning_rate)
-    state = create_train_state(rng, model, tx, hidden_size)
+    state = create_train_state(init_rng, model, tx, dummy_input)
 
     print("Model parameter shapes:")
     tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
@@ -45,18 +46,20 @@ def test_train_step():
 
     dummy_input = jnp.ones((1, sequence_length, hidden_size))
     tx = optax.adam(learning_rate)
-    state = create_train_state(rng, model, tx, hidden_size)
+    params = model.init(rng, dummy_input)
+    state = create_train_state(params, model.apply, tx)
 
     print("Initial model parameter shapes:")
     tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
 
     def loss_fn(params, batch, rng):
-        logits = model.apply(params, rng, batch['image'])
+        logits = model.apply(params, rng, batch['image'], train=True)
         # Assuming the model output needs to be reduced to match label shape
         predicted = jnp.mean(logits, axis=-1, keepdims=True)
         return jnp.mean((predicted - batch['label']) ** 2)
 
-    new_state, metrics = train_step(state, batch, rng, loss_fn, lambda x: {})  # Add a dummy metrics_fn
+    rng, subkey = random.split(rng)
+    new_state, metrics = train_step(state, batch, subkey, loss_fn, lambda x: {})  # Add a dummy metrics_fn
 
     print("Updated model parameter shapes:")
     tree_util.tree_map(lambda x: print(f"{x.shape}"), new_state.params)
@@ -83,12 +86,14 @@ def test_train_model():
 
     num_epochs = 2
 
+    rng, train_rng = random.split(rng)
     final_state, metrics_history = train_model(
-        model,  # Pass the transformed model instead of the state
+        model,
         [batch],
         num_epochs,
-        optax.adam(learning_rate),  # Pass the optimizer
+        optax.adam(learning_rate),
         loss_fn,
+        train_rng,
         hidden_size,
         sequence_length
     )
