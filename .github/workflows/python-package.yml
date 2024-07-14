@@ -12,6 +12,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Set PYTHONPATH
+      run: |
+        echo "::group::Set PYTHONPATH"
+        set -x
+        echo "PYTHONPATH=${{ github.workspace }}/src" >> $GITHUB_ENV
+        echo "::endgroup::"
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
@@ -53,6 +59,13 @@ jobs:
         set -x
         pip install -e .
         echo "nextgenjax installation completed"
+        echo "::endgroup::"
+    - name: Print site-packages contents
+      run: |
+        echo "::group::Print site-packages contents"
+        set -x
+        python -c "import site; print(site.getsitepackages())"
+        ls -R $(python -c "import site; print(site.getsitepackages()[0])")
         echo "::endgroup::"
     - name: Print src/__init__.py contents
       run: |
@@ -155,8 +168,7 @@ jobs:
       run: |
         echo "::group::Test nextgenjax import"
         set -x
-        python -c "import sys; print('Original sys.path:', sys.path)"
-        python -c "import sys; sys.path.append('/home/runner/work/NextGenJAX/NextGenJAX/src'); print('Updated sys.path:', sys.path); import nextgenjax; print('nextgenjax imported successfully')" || { echo "Import failed with error:"; python -c "import sys; sys.path.append('/home/runner/work/NextGenJAX/NextGenJAX/src'); import nextgenjax" 2>&1; exit 1; }
+        python -c "import nextgenjax; print(f'nextgenjax imported successfully from {nextgenjax.__file__}')"
         echo "::endgroup::"
     - name: List installed packages
       run: |
