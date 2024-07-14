@@ -58,6 +58,18 @@ jobs:
     - name: Print sys.path
       run: |
         python -c "import sys; print('sys.path:', sys.path)"
+    - name: Set PYTHONPATH
+      run: echo "PYTHONPATH=${{ github.workspace }}/src" >> $GITHUB_ENV
+    - name: Debug Python environment
+      run: |
+        echo "Current working directory: $(pwd)"
+        echo "Contents of current directory:"
+        ls -R
+        echo "PYTHONPATH: $PYTHONPATH"
+        echo "Python sys.path:"
+        python -c "import sys; print('\n'.join(sys.path))"
+        echo "Installed packages:"
+        pip list
     - name: Test nextgenjax import
       run: |
         python -c "import nextgenjax; print('nextgenjax imported successfully')" || { echo "Import failed with error:"; python -c "import nextgenjax" 2>&1; exit 1; }
@@ -69,8 +81,6 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Set PYTHONPATH
-      run: echo "PYTHONPATH=${{ github.workspace }}/src" >> $GITHUB_ENV
     - name: Print PYTHONPATH
       run: echo $PYTHONPATH
     - name: Run individual test files
