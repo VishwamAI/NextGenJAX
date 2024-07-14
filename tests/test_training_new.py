@@ -97,7 +97,8 @@ def test_train_model():
         loss_fn,
         train_rng,
         hidden_size,
-        sequence_length
+        sequence_length,
+        model_params=(2, 4, 0.1)  # Add this line: num_layers, num_heads, dropout_rate
     )
 
     print("Final model parameter shapes:")
