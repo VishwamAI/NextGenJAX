@@ -49,7 +49,9 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Update PYTHONPATH
       run: |
-        echo "PYTHONPATH=$PYTHONPATH:$(pwd)" >> $GITHUB_ENV
+        echo "PYTHONPATH=$PYTHONPATH:${{ github.workspace }}" >> $GITHUB_ENV
+    - name: Print PYTHONPATH
+      run: echo $PYTHONPATH
     - name: Run tests
       run: |
         pytest src tests
