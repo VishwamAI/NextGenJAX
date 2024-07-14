@@ -90,15 +90,14 @@ def test_train_model():
 
     rng, train_rng = random.split(rng)
     final_state, metrics_history = train_model(
-        model,
-        [batch],
-        num_epochs,
-        optax.adam(learning_rate),
-        loss_fn,
-        train_rng,
-        hidden_size,
-        sequence_length,
-        model_params=(2, 4, 0.1)  # Add this line: num_layers, num_heads, dropout_rate
+        model_params=(2, 4, 0.1),  # num_layers, num_heads, dropout_rate
+        train_dataset=[batch],
+        num_epochs=num_epochs,
+        optimizer=optax.adam(learning_rate),
+        loss_fn=loss_fn,
+        rng=train_rng,
+        hidden_size=hidden_size,
+        sequence_length=sequence_length
     )
 
     print("Final model parameter shapes:")
