@@ -16,6 +16,8 @@ def create_train_state(
     rng: jax.random.PRNGKey,
     model: Any,
     optimizer: OptimizerType,
+    hidden_size: int,
+    sequence_length: int = 64,
 ) -> train_state.TrainState:
     """
     Creates initial training state.
@@ -24,11 +26,13 @@ def create_train_state(
         rng (jax.random.PRNGKey): The random number generator key.
         model (Any): The model to be trained (Haiku transformed or regular module).
         optimizer (OptimizerType): The optimizer to use.
+        hidden_size (int): The hidden size of the model.
+        sequence_length (int): The sequence length for the dummy input. Default is 64.
 
     Returns:
         train_state.TrainState: The initial training state.
     """
-    dummy_input = jnp.ones([1, 28, 28, 1])
+    dummy_input = jnp.ones([1, sequence_length, hidden_size])
 
     if isinstance(model, hk.Transformed):
         params = model.init(rng, dummy_input)
