@@ -50,6 +50,13 @@ jobs:
         pip install -e .
         echo "nextgenjax installation completed"
         echo "::endgroup::"
+    - name: Print src/__init__.py contents
+      run: |
+        echo "::group::Print src/__init__.py contents"
+        set -x
+        echo "Contents of src/__init__.py:"
+        cat src/__init__.py
+        echo "::endgroup::"
     - name: List contents of src directory
       run: |
         echo "::group::List contents of src directory"
