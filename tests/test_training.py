@@ -54,7 +54,7 @@ def test_create_train_state():
         logger.debug("Optimizer created")
 
         params = model.init(init_rng, dummy_input)
-        state = create_train_state(init_rng, model, optimizer, hidden_size, sequence_length)
+        state = create_train_state(params, model.apply, optimizer, hidden_size)
         logger.debug("TrainState created")
 
         print("Model parameter shapes:")
@@ -84,7 +84,7 @@ def test_train_step():
         logger.debug("Optimizer created")
 
         params = model.init(rng, jnp.ones((1, sequence_length, hidden_size)))
-        state = create_train_state(params, model.apply, optimizer)
+        state = create_train_state(params, model.apply, optimizer, hidden_size)
         logger.debug("TrainState created")
 
         print("Initial model parameter shapes:")
