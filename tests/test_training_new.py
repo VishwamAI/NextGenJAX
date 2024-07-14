@@ -1,6 +1,7 @@
 import jax.numpy as jnp
 import haiku as hk
 from jax import random
+import optax
 from nextgenjax.model import NextGenModel
 from nextgenjax.train import create_train_state, train_step, train_model
 
@@ -19,7 +20,8 @@ def test_create_train_state():
 
     dummy_input = jnp.ones((1, 28, 28, 4))
     params = model.init(rng, dummy_input)
-    state = create_train_state(rng, model, learning_rate)
+    tx = optax.adam(learning_rate)
+    state = create_train_state(params, model.apply, tx)
 
     assert 'params' in state
     assert 'opt_state' in state
@@ -37,7 +39,9 @@ def test_train_step():
     }
 
     dummy_input = jnp.ones((1, 28, 28, 4))
-    state = create_train_state(rng, model, learning_rate)
+    params = model.init(rng, dummy_input)
+    tx = optax.adam(learning_rate)
+    state = create_train_state(params, model.apply, tx)
 
     def loss_fn(params):
         logits = model.apply(params, None, batch['image'])
@@ -63,7 +67,9 @@ def test_train_model():
     }
 
     dummy_input = jnp.ones((1, 28, 28, 4))
-    state = create_train_state(rng, model, learning_rate)
+    params = model.init(rng, dummy_input)
+    tx = optax.adam(learning_rate)
+    state = create_train_state(params, model.apply, tx)
 
     def loss_fn(params):
         logits = model.apply(params, None, batch['image'])

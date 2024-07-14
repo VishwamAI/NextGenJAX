@@ -143,7 +143,7 @@ def test_train_model():
 
         rng = jax.random.PRNGKey(0)
         dummy_input = jnp.ones((1, 28, 28, 4))
-        params = model.init(rng, dummy_input)['params']
+        params = model.init(rng, dummy_input)
         logger.debug("Model parameters initialized")
 
         final_state, metrics = train_model(params, model, dataset,
