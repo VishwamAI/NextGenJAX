@@ -3,7 +3,7 @@
 jax==0.4.30
 jaxlib==0.4.30
 chex>=0.1.86
-dm-haiku==0.0.10
+dm-haiku==0.0.11
 fairscale==0.4.13
 flax==0.8.5
 numpy>=1.24.1
