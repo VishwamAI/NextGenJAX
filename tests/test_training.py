@@ -14,6 +14,14 @@ print("Executing test_training.py")
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+def find_layer_norm_scale(params):
+    found = []
+    def find_scale(path, value):
+        if 'layer_norm/scale' in '/'.join(path):
+            found.append(value)
+    tree_util.tree_map_with_path(find_scale, params)
+    return found[0] if found else None
+
 # Define constants
 sequence_length = 32
 batch_size = 32
@@ -49,7 +57,7 @@ def test_create_train_state():
         jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
 
         # Specifically check the shape of layer_norm scale
-        layer_norm_scale = jax.tree_util.tree_find(state.params, lambda x: 'layer_norm/scale' in x)
+        layer_norm_scale = find_layer_norm_scale(state.params)
         if layer_norm_scale is not None:
             print(f"Layer norm scale shape: {layer_norm_scale.shape}")
         else:
@@ -77,7 +85,11 @@ def test_train_step():
         print("Initial model parameter shapes:")
         jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
         print("Layer norm scale shape:")
-        print(jax.tree_util.tree_map(lambda x: x.shape, jax.tree_util.tree_find(state.params, lambda x: 'layer_norm/scale' in x)))
+        layer_norm_scale = find_layer_norm_scale(state.params)
+        if layer_norm_scale is not None:
+            print(f"Layer norm scale shape: {layer_norm_scale.shape}")
+        else:
+            print("Layer norm scale not found in params")
 
         @jax.jit
         def train_step(state, batch, rng):
@@ -107,7 +119,11 @@ def test_train_step():
         print("Updated model parameter shapes:")
         jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), new_state.params)
         print("Layer norm scale shape:")
-        print(jax.tree_util.tree_map(lambda x: x.shape, jax.tree_util.tree_find(new_state.params, lambda x: 'layer_norm/scale' in x)))
+        layer_norm_scale = find_layer_norm_scale(new_state.params)
+        if layer_norm_scale is not None:
+            print(f"Layer norm scale shape: {layer_norm_scale.shape}")
+        else:
+            print("Layer norm scale not found in params")
 
         assert isinstance(new_state, train_state.TrainState)
         assert isinstance(metrics['loss'], jnp.ndarray)
