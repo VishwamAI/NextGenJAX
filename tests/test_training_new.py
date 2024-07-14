@@ -52,7 +52,7 @@ def test_train_step():
     tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
 
     def loss_fn(params, batch, rng):
-        logits = model.apply(params, rng, batch['image'], train=True)
+        logits = state.apply_fn(params, rng, batch['image'], train=True)
         # Assuming the model output needs to be reduced to match label shape
         predicted = jnp.mean(logits, axis=-1, keepdims=True)
         return jnp.mean((predicted - batch['label']) ** 2)

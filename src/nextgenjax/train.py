@@ -59,12 +59,11 @@ def create_train_state(
         tx=optimizer,
     )
 
-
 @jax.jit
 def train_step(
     state: train_state.TrainState,
     batch: Dict[str, jnp.ndarray],
-    loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float],
+    loss_fn: Callable[[jnp.ndarray, Dict[str, jnp.ndarray], jax.random.PRNGKey], float],
     rng: jax.random.PRNGKey,
 ) -> Tuple[train_state.TrainState, Dict[str, float], jax.random.PRNGKey]:
     """
@@ -73,8 +72,8 @@ def train_step(
     Args:
         state (train_state.TrainState): The current training state.
         batch (Dict[str, jnp.ndarray]): A batch of training data.
-        loss_fn (Callable[[jnp.ndarray, jnp.ndarray], float]): A function to
-        compute the loss given the model's predictions and the true labels.
+        loss_fn (Callable[[jnp.ndarray, Dict[str, jnp.ndarray], jax.random.PRNGKey], float]): A function to
+        compute the loss given the model parameters, batch, and RNG key.
         rng (jax.random.PRNGKey): The random number generator key.
 
     Returns:
@@ -82,13 +81,12 @@ def train_step(
         The updated training state, metrics, and new RNG key.
     """
 
-    def loss_fn(params):
-        dropout_rng, new_rng = jax.random.split(rng)
-        logits = state.apply_fn(params, dropout_rng, batch["image"], train=True)
-        loss = loss_fn(logits, batch["label"])
-        return loss, (logits, new_rng)
+    def loss_and_grad(params):
+        loss, new_rng = loss_fn(params, batch, rng)
+        return loss, new_rng
 
-    (loss, (logits, new_rng)), grads = jax.value_and_grad(loss_fn, has_aux=True)(state.params)
+    grad_fn = jax.value_and_grad(loss_and_grad, has_aux=True)
+    (loss, new_rng), grads = grad_fn(state.params)
     state = state.apply_gradients(grads=grads)
     metrics = {"loss": loss}
     return state, metrics, new_rng

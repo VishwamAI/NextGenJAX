@@ -5,7 +5,7 @@ import pytest
 import optax
 import haiku as hk
 from nextgenjax.model import NextGenModel
-from nextgenjax.train import create_train_state
+from nextgenjax.train import create_train_state, train_model
 from flax.training import train_state
 import logging
 
@@ -149,7 +149,7 @@ def test_train_model():
         logger.debug("Optimizer created")
 
         dataset = [
-            {"image": jnp.ones((1, sequence_length, hidden_size)), "label": jnp.zeros(1, dtype=jnp.int32)}
+            {"image": jnp.ones((1, sequence_length, hidden_size)), "label": jnp.zeros((1, 1), dtype=jnp.float32)}
             for _ in range(10)
         ]
         logger.debug("Dataset created")
@@ -157,58 +157,42 @@ def test_train_model():
         # Add assertion to catch shape mismatches
         assert dataset[0]["image"].shape == (1, sequence_length, hidden_size), f"Expected shape (1, {sequence_length}, {hidden_size}), got {dataset[0]['image'].shape}"
 
-        @jax.jit
-        def train_step(state, batch, rng):
-            def loss_fn(params):
-                logits = state.apply_fn(params, rng, batch['image'])
-                loss = optax.softmax_cross_entropy_with_integer_labels(logits, batch['label']).mean()
-                return loss, logits
-            grad_fn = jax.value_and_grad(loss_fn, has_aux=True)
-            (loss, logits), grads = grad_fn(state.params)
-            state = state.apply_gradients(grads=grads)
-            return state, {'loss': loss}
+        def loss_fn(params, batch, rng):
+            logits = model.apply(params, rng, batch['image'], train=True)
+            predicted = jnp.mean(logits, axis=-1, keepdims=True)
+            return jnp.mean((predicted - batch['label']) ** 2)
 
-        logger.debug("train_step function defined")
-
-        def train_model(model, dataset, num_epochs, optimizer):
-            rng = jax.random.PRNGKey(0)
-            rng, init_rng = jax.random.split(rng)
-            dummy_input = jnp.ones((1, sequence_length, hidden_size))
-            params = model.init(init_rng, dummy_input)
-            state = create_train_state(init_rng, model, optimizer, hidden_size, sequence_length)
-            logger.debug("Initial TrainState created")
-            print("Initial model parameter shapes:")
-            jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
-
-            for epoch in range(num_epochs):
-                logger.debug(f"Starting epoch {epoch + 1}")
-                for batch in dataset:
-                    rng, step_key = jax.random.split(rng)
-                    state, metrics = train_step(state, batch, step_key)
-                logger.debug(f"Epoch {epoch + 1} completed. Final loss: {metrics['loss']}")
-
-            print("Final model parameter shapes:")
-            jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
-            return state, metrics
-
-        logger.debug("train_model function defined")
+        logger.debug("Loss function defined")
 
         rng = jax.random.PRNGKey(0)
         rng, init_rng = jax.random.split(rng)
         dummy_input = jnp.ones((1, sequence_length, hidden_size))
         params = model.init(init_rng, dummy_input)
-        state = create_train_state(params, model.apply, optimizer, hidden_size)
-        logger.debug("TrainState created")
+        state = create_train_state(init_rng, model, optimizer, hidden_size, sequence_length)
+        logger.debug("Initial TrainState created")
         print("Initial model parameter shapes:")
         jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
 
-        final_state, metrics = train_model(model, dataset, num_epochs=1, optimizer=optimizer)
-        logger.debug(f"train_model executed. Final loss: {metrics['loss']}")
+        final_state, metrics_history = train_model(
+            model_params=(2, 4, 0.1),  # num_layers, num_heads, dropout_rate
+            train_dataset=dataset,
+            num_epochs=1,
+            optimizer=optimizer,
+            loss_fn=loss_fn,
+            hidden_size=hidden_size,
+            sequence_length=sequence_length,
+            rng=rng
+        )
+        logger.debug(f"train_model executed. Final loss: {metrics_history[-1]['loss']}")
+
+        print("Final model parameter shapes:")
+        jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), final_state.params)
 
         assert isinstance(final_state, train_state.TrainState)
-        assert "loss" in metrics
-        assert isinstance(metrics["loss"], jnp.ndarray)
-        assert metrics["loss"].shape == ()
+        assert isinstance(metrics_history, list)
+        assert len(metrics_history) == 1  # One epoch
+        assert "loss" in metrics_history[0]
+        assert isinstance(metrics_history[0]["loss"], float)
         logger.debug("test_train_model completed successfully")
     except Exception as e:
         logger.error(f"Error in test_train_model: {str(e)}")
