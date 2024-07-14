@@ -135,6 +135,22 @@ jobs:
         ls -R src
         echo "PYTHONPATH: $PYTHONPATH"
         echo "::endgroup::"
+    - name: Debug - List src directory contents
+      run: |
+        echo "::group::Debug - List src directory contents"
+        echo "Contents of src directory:"
+        ls -R src/
+        echo "::endgroup::"
+    - name: Debug - Print PYTHONPATH
+      run: |
+        echo "::group::Debug - Print PYTHONPATH"
+        echo "PYTHONPATH: $PYTHONPATH"
+        echo "::endgroup::"
+    - name: Debug - Print Python sys.path
+      run: |
+        echo "::group::Debug - Print Python sys.path"
+        python -c "import sys; print('sys.path:', sys.path)"
+        echo "::endgroup::"
     - name: Test nextgenjax import
       run: |
         echo "::group::Test nextgenjax import"
