@@ -44,11 +44,7 @@ def init_model(rng, input_shape, num_layers, hidden_size, num_heads, dropout_rat
 def forward(params, inputs, num_layers, hidden_size, num_heads, dropout_rate,
             train: bool = False):
     model = NextGenJAXModel(num_layers, hidden_size, num_heads, dropout_rate)
-    return model.apply(
-        {'params': params},
-        inputs,
-        train=train
-    )
+    return model.apply({'params': params}, inputs, train=train)
 
 
 def create_optimizer(learning_rate: float = 1e-3):
