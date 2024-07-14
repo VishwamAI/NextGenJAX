@@ -42,7 +42,7 @@ def test_create_train_state():
         optimizer = optax.adam(1e-3)
         logger.debug("Optimizer created")
 
-        state = create_train_state(rng, model, optimizer)
+        state = create_train_state(rng, model, optimizer, hidden_size)
         logger.debug("TrainState created")
 
         print("Model parameter shapes:")
@@ -64,7 +64,7 @@ def test_train_step():
         optimizer = optax.adam(1e-3)
         logger.debug("Optimizer created")
 
-        state = create_train_state(rng, model, optimizer)
+        state = create_train_state(rng, model, optimizer, hidden_size)
         logger.debug("TrainState created")
 
         print("Initial model parameter shapes:")
@@ -135,7 +135,7 @@ def test_train_model():
 
         def train_model(model, dataset, num_epochs, optimizer):
             rng = jax.random.PRNGKey(0)
-            state = create_train_state(rng, model, optimizer)
+            state = create_train_state(rng, model, optimizer, hidden_size)
             logger.debug("Initial TrainState created")
             print("Initial model parameter shapes:")
             jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
@@ -153,7 +153,7 @@ def test_train_model():
         logger.debug("train_model function defined")
 
         rng = jax.random.PRNGKey(0)
-        state = create_train_state(rng, model, optimizer)
+        state = create_train_state(rng, model, optimizer, hidden_size)
         logger.debug("TrainState created")
         print("Initial model parameter shapes:")
         jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
