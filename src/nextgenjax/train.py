@@ -77,8 +77,13 @@ def train_step(
     """
 
     def compute_loss(params):
-        # Ensure batch["image"] has the correct shape
-        image = batch["image"].reshape(-1, sequence_length, hidden_size)
+        # Get the actual shape of the input
+        actual_shape = batch["image"].shape
+        # Reshape only if necessary
+        if actual_shape != (-1, sequence_length, hidden_size):
+            image = batch["image"].reshape(-1, sequence_length, hidden_size)
+        else:
+            image = batch["image"]
         logits = state.apply_fn({"params": params}, image)
         loss = loss_fn(logits, batch["label"])
         return loss
@@ -94,7 +99,7 @@ def train_model(
     train_dataset: Any,
     num_epochs: int,
     optimizer: OptimizerType,
-    loss_fn: Callable[[jnp.ndarray, Dict[str, jnp.ndarray], jax.random.PRNGKey], float],
+    loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float],
     hidden_size: int,
     sequence_length: int,
     rng: jax.random.PRNGKey,
@@ -111,6 +116,7 @@ def train_model(
         compute the loss given the model's predictions and the true labels.
         hidden_size (int): The hidden size of the model.
         sequence_length (int): The sequence length for the input.
+        rng (jax.random.PRNGKey): The random number generator key.
 
     Returns:
         Tuple[train_state.TrainState, Dict[str, float]]: The final training
@@ -120,7 +126,6 @@ def train_model(
         for batch in dataset:
             yield batch
 
-    rng = jax.random.PRNGKey(0)
     rng, init_rng = jax.random.split(rng)
     state = create_train_state(init_rng, model, optimizer, hidden_size, sequence_length)
 
@@ -128,8 +133,7 @@ def train_model(
     for epoch in range(num_epochs):
         epoch_loss = []
         for batch in data_loader(train_dataset):
-            rng, step_rng = jax.random.split(rng)
-            state, loss = train_step(state, batch, loss_fn, sequence_length, hidden_size, step_rng)
+            state, loss = train_step(state, batch, loss_fn, sequence_length, hidden_size)
             epoch_loss.append(loss)
         avg_loss = jnp.mean(jnp.array(epoch_loss))
         metrics_history.append({"loss": avg_loss})
