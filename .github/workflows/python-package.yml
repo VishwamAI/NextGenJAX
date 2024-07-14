@@ -114,7 +114,7 @@ jobs:
       run: |
         echo "::group::Set PYTHONPATH"
         set -x
-        echo "PYTHONPATH=${{ github.workspace }}/src" >> $GITHUB_ENV
+        echo "PYTHONPATH=${{ github.workspace }}/src:${{ github.workspace }}/src/nextgenjax" >> $GITHUB_ENV
         echo "::endgroup::"
     - name: Debug Python environment
       run: |
