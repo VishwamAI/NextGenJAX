@@ -39,6 +39,10 @@ jobs:
       timeout-minutes: 20
     - name: Install nextgenjax
       run: pip install -e .
+    - name: Print nextgenjax.egg-info contents
+      run: |
+        echo "Contents of nextgenjax.egg-info:"
+        ls -R src/nextgenjax.egg-info
     - name: Print installation info
       run: |
         echo "Installation directory:"
