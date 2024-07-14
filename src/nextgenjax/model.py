@@ -20,7 +20,7 @@ class NextGenModel(hk.Module):
         # Self-attention
         residual = x
         x = hk.LayerNorm(axis=-1, create_scale=True, create_offset=True, param_axis=(), scale_init=hk.initializers.Constant(1.0))(x)
-        x = hk.MultiHeadAttention(num_heads=self.num_heads, key_size=self.hidden_size // self.num_heads, w_init_scale=2.0)(x, x, x)
+        x = hk.MultiHeadAttention(num_heads=self.num_heads, key_size=self.hidden_size // self.num_heads, model_size=self.hidden_size, w_init_scale=2.0)(x, x, x)
         x = hk.dropout(hk.next_rng_key(), self.dropout_rate, x) if train else x
         x = x + residual
 
