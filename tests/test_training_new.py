@@ -1,9 +1,8 @@
-import jax
 import jax.numpy as jnp
-import pytest
 from jax import random
 from nextgenjax.model import NextGenJAXModel
 from nextgenjax.training import create_train_state, train_step, train_model
+
 
 def create_model():
     return NextGenJAXModel(
@@ -12,6 +11,7 @@ def create_model():
         num_heads=4,
         dropout_rate=0.1
     )
+
 
 def test_create_train_state():
     model = create_model()
@@ -24,6 +24,7 @@ def test_create_train_state():
     assert 'params' in state
     assert 'opt_state' in state
     assert callable(state.apply_fn)
+
 
 def test_train_step():
     model = create_model()
@@ -50,6 +51,7 @@ def test_train_step():
     assert isinstance(metrics['loss'], float)
     assert new_state.step == state.step + 1
 
+
 def test_train_model():
     model = create_model()
     learning_rate = 0.001
@@ -72,7 +74,9 @@ def test_train_model():
     num_epochs = 2
     batch_size = 32
 
-    final_state, metrics_history = train_model(state, [batch], num_epochs, batch_size, loss_fn)
+    final_state, metrics_history = train_model(
+        state, [batch], num_epochs, batch_size, loss_fn
+    )
 
     assert len(metrics_history) == num_epochs
     assert all('loss' in epoch_metrics for epoch_metrics in metrics_history)

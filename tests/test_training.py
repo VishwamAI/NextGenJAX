@@ -17,7 +17,9 @@ def create_model():
 
 def test_create_train_state():
     model = create_model()
-    params = model.init(jax.random.PRNGKey(0), jnp.ones((1, 28, 28, 4)))['params']
+    params = model.init(
+        jax.random.PRNGKey(0), jnp.ones((1, 28, 28, 4))
+    )['params']
     tx = optax.adam(1e-3)
     state = train_state.TrainState.create(
         apply_fn=model.apply, params=params, tx=tx
@@ -27,7 +29,9 @@ def test_create_train_state():
 
 def test_train_step():
     model = create_model()
-    params = model.init(jax.random.PRNGKey(0), jnp.ones((1, 28, 28, 4)))['params']
+    params = model.init(
+        jax.random.PRNGKey(0), jnp.ones((1, 28, 28, 4))
+    )['params']
     tx = optax.adam(1e-3)
     state = train_state.TrainState.create(
         apply_fn=model.apply, params=params, tx=tx
