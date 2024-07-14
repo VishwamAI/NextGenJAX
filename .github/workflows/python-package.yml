@@ -16,6 +16,10 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Print Python and pip versions
+      run: |
+        python --version
+        pip --version
     - name: Cache pip dependencies
       uses: actions/cache@v3
       with:
@@ -159,23 +163,35 @@ jobs:
         set -x
         echo $PYTHONPATH
         echo "::endgroup::"
-    - name: Run all tests
+    - name: Run unit tests
       run: |
-        echo "::group::Run all tests"
+        echo "::group::Run unit tests"
         set -x
         echo "Current working directory: $(pwd)"
-        echo "Contents of current directory:"
-        ls -R
-        echo "Contents of src directory:"
-        ls -R src
         echo "PYTHONPATH: $PYTHONPATH"
         echo "Python sys.path:"
         python -c "import sys; print('\n'.join(sys.path))"
         echo "Attempting to import nextgenjax:"
         python -c "import nextgenjax; print(f'nextgenjax imported successfully from {nextgenjax.__file__}')" || echo "Failed to import nextgenjax"
-        pytest tests/ -v
+        pytest tests/unit -v
         echo "::endgroup::"
-      timeout-minutes: 20
+      timeout-minutes: 10
+
+    - name: Run integration tests
+      run: |
+        echo "::group::Run integration tests"
+        set -x
+        pytest tests/integration -v
+        echo "::endgroup::"
+      timeout-minutes: 15
+
+    - name: Run other tests
+      run: |
+        echo "::group::Run other tests"
+        set -x
+        pytest tests/ -v --ignore=tests/unit --ignore=tests/integration
+        echo "::endgroup::"
+      timeout-minutes: 10
 
   cuda-tests:
     runs-on: ubuntu-latest
@@ -186,11 +202,12 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.9
+      timeout-minutes: 5
     - name: Install CUDA dependencies
       run: |
         # Add commands to install CUDA dependencies
-      timeout-minutes: 20
+      timeout-minutes: 15
     - name: Run CUDA-specific tests
       run: |
         # Add commands to run CUDA-specific tests
-      timeout-minutes: 30
+      timeout-minutes: 20
