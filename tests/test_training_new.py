@@ -18,7 +18,7 @@ def test_create_train_state():
     learning_rate = 0.001
     rng = random.PRNGKey(0)
 
-    dummy_input = jnp.ones((1, 28, 28, 4))
+    dummy_input = jnp.ones((1, 28, 28, 1))
     tx = optax.adam(learning_rate)
     state = create_train_state(rng, model, tx)
 
@@ -33,14 +33,13 @@ def test_train_step():
     rng = random.PRNGKey(0)
 
     batch = {
-        'image': jnp.ones((32, 28, 28, 4)),
+        'image': jnp.ones((32, 28, 28, 1)),
         'label': jnp.ones((32, 1))
     }
 
-    dummy_input = jnp.ones((1, 28, 28, 4))
-    params = model.init(rng, dummy_input)
+    dummy_input = jnp.ones((1, 28, 28, 1))
     tx = optax.adam(learning_rate)
-    state = create_train_state(params, model.apply, tx)
+    state = create_train_state(rng, model, tx)
 
     def loss_fn(params):
         logits = model.apply(params, rng, batch['image'])
@@ -61,14 +60,13 @@ def test_train_model():
     rng = random.PRNGKey(0)
 
     batch = {
-        'image': jnp.ones((32, 28, 28, 4)),
+        'image': jnp.ones((32, 28, 28, 1)),
         'label': jnp.ones((32, 1))
     }
 
-    dummy_input = jnp.ones((1, 28, 28, 4))
-    params = model.init(rng, dummy_input)
+    dummy_input = jnp.ones((1, 28, 28, 1))
     tx = optax.adam(learning_rate)
-    state = create_train_state(params, model.apply, tx)
+    state = create_train_state(rng, model, tx)
 
     def loss_fn(params):
         logits = model.apply(params, rng, batch['image'])
