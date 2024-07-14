@@ -70,6 +70,12 @@ jobs:
         python -c "import sys; print('\n'.join(sys.path))"
         echo "Installed packages:"
         pip list
+    - name: Debug - List installed packages
+      run: |
+        echo "PYTHONPATH: $PYTHONPATH"
+        pip list
+        pip list --path src
+        python -c "import sys; print(sys.path)"
     - name: Test nextgenjax import
       run: |
         python -c "import nextgenjax; print('nextgenjax imported successfully')" || { echo "Import failed with error:"; python -c "import nextgenjax" 2>&1; exit 1; }
