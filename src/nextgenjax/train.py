@@ -13,7 +13,7 @@ OptimizerType = optax.GradientTransformation
 
 def create_train_state(
     rng: jax.random.PRNGKey,
-    model: NextGenModel,
+    model: Any,
     optimizer: OptimizerType,
 ) -> train_state.TrainState:
     """
@@ -21,16 +21,23 @@ def create_train_state(
 
     Args:
         rng (jax.random.PRNGKey): The random number generator key.
-        model (NextGenModel): The model to be trained.
+        model (Any): The model to be trained or its apply function.
         optimizer (OptimizerType): The optimizer to use.
 
     Returns:
         train_state.TrainState: The initial training state.
     """
-    params = model.init(rng, jnp.ones([1, 28, 28, 1]))["params"]
+    if callable(model):
+        # For test_training_new.py usage
+        params = model.init(rng, jnp.ones([1, 28, 28, 1]))
+        apply_fn = model
+    else:
+        # For test_training.py usage
+        params = model.init(rng, jnp.ones([1, 28, 28, 1]))["params"]
+        apply_fn = model.apply
 
     return train_state.TrainState.create(
-        apply_fn=model.apply,
+        apply_fn=apply_fn,
         params=params,
         tx=optimizer,
     )
