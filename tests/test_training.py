@@ -24,23 +24,27 @@ def test_train_step():
     learning_rate = 0.01
     optimizer = optax.sgd(learning_rate)
     state = create_train_state(rng, model, optimizer)
-    batch = {"image": jnp.ones((1, 28, 28, 1)), "label": jnp.ones((1, 10))}
+    batch = {
+        "image": jnp.ones((1, 28, 28, 1)),
+        "label": jnp.ones((1, 10))
+    }
 
     def loss_fn(logits, labels):
         return jnp.mean((logits - labels) ** 2)
 
     new_state, loss = train_step(state, batch, loss_fn)
-    assert new_state.params is not None
-    assert loss >= 0
+    assert jax.tree_util.tree_all(
+        jax.tree_util.tree_map(lambda x: x is not None, new_state.params))
+    assert jnp.all(loss >= 0)
 
 
 def test_train_model():
     layers = [{"type": "dense", "features": 10, "activation": jnp.tanh}]
     model = NextGenModel(layers=layers)
-    learning_rate = 0.01
-    optimizer = optax.sgd(learning_rate)
+    optimizer = optax.sgd(0.01)
     dataset = [
-        {"image": jnp.ones((1, 28, 28, 1)), "label": jnp.ones((1, 10))}
+        {"image": jnp.ones((1, 28, 28, 1)),
+         "label": jnp.ones((1, 10))}
         for _ in range(10)
     ]
 
@@ -52,10 +56,13 @@ def test_train_model():
         dataset,
         num_epochs=1,
         optimizer=optimizer,
-        loss_fn=loss_fn,
+        loss_fn=loss_fn
     )
     assert final_state is not None
     assert "loss" in metrics
+    assert isinstance(metrics["loss"], jnp.ndarray)
+    # Check if it's a scalar (0-dimensional array)
+    assert metrics["loss"].shape == ()
 
 
 if __name__ == "__main__":
