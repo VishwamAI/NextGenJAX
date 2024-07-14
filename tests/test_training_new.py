@@ -56,7 +56,7 @@ def test_train_step():
         predicted = jnp.mean(logits, axis=-1, keepdims=True)
         return jnp.mean((predicted - batch['label']) ** 2)
 
-    new_state, metrics = train_step(state, batch, loss_fn)
+    new_state, metrics = train_step(state, batch, loss_fn, rng, sequence_length, hidden_size)
 
     print("Updated model parameter shapes:")
     tree_util.tree_map(lambda x: print(f"{x.shape}"), new_state.params)
@@ -91,7 +91,7 @@ def test_train_model():
     num_epochs = 2
 
     final_state, metrics_history = train_model(
-        model, [batch], num_epochs, tx, loss_fn, rng
+        model, [batch], num_epochs, tx, loss_fn, rng, sequence_length
     )
 
     print("Final model parameter shapes:")
