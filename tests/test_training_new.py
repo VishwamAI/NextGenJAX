@@ -23,9 +23,9 @@ def test_create_train_state():
     rng = random.PRNGKey(0)
     rng, init_rng = random.split(rng)
 
-    dummy_input = jnp.ones((1, sequence_length, hidden_size))
     tx = optax.adam(learning_rate)
-    state = create_train_state(init_rng, model, tx, hidden_size)
+    params = model.init(init_rng, jnp.ones((1, 28, 28, 1)))
+    state = create_train_state(params, model.apply, tx, hidden_size)
 
     print("Model parameter shapes:")
     tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
@@ -44,9 +44,8 @@ def test_train_step():
         'label': jnp.ones((batch_size, 1))
     }
 
-    dummy_input = jnp.ones((1, sequence_length, hidden_size))
     tx = optax.adam(learning_rate)
-    params = model.init(rng, dummy_input)
+    params = model.init(rng, jnp.ones((1, 28, 28, 1)))
     state = create_train_state(params, model.apply, tx, hidden_size)
 
     print("Initial model parameter shapes:")
