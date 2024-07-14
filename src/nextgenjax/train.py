@@ -84,6 +84,7 @@ def train_model(
     num_epochs: int,
     optimizer: OptimizerType,
     loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float],
+    hidden_size: int,
 ) -> Tuple[train_state.TrainState, Dict[str, float]]:
     """
     Trains the model.
@@ -95,6 +96,7 @@ def train_model(
         optimizer (OptimizerType): The optimizer to use.
         loss_fn (Callable[[jnp.ndarray, jnp.ndarray], float]): A function to
         compute the loss given the model's predictions and the true labels.
+        hidden_size (int): The hidden size of the model.
 
     Returns:
         Tuple[train_state.TrainState, Dict[str, float]]: The final training
@@ -105,7 +107,7 @@ def train_model(
             yield batch
 
     rng = jax.random.PRNGKey(0)
-    state = create_train_state(rng, model, optimizer)
+    state = create_train_state(rng, model, optimizer, hidden_size)
 
     for epoch in range(num_epochs):
         epoch_loss = []
