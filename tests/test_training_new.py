@@ -29,8 +29,8 @@ def test_create_train_state():
     print("Model parameter shapes:")
     tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
 
-    assert 'params' in state
-    assert 'opt_state' in state
+    assert hasattr(state, 'params')
+    assert hasattr(state, 'opt_state')
     assert callable(state.apply_fn)
 
 def test_train_step():
@@ -91,7 +91,7 @@ def test_train_model():
     num_epochs = 2
 
     final_state, metrics_history = train_model(
-        model, [batch], num_epochs, tx, lambda params, rng: loss_fn(params, rng), hidden_size
+        model, [batch], num_epochs, tx, loss_fn, hidden_size, rng
     )
 
     print("Final model parameter shapes:")
