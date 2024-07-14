@@ -139,8 +139,8 @@ jobs:
       run: |
         echo "::group::Test nextgenjax import"
         set -x
-        python -c "import sys; print(sys.path)"
-        python -c "import nextgenjax; print('nextgenjax imported successfully')" || { echo "Import failed with error:"; python -c "import nextgenjax" 2>&1; exit 1; }
+        python -c "import sys; print('Original sys.path:', sys.path)"
+        python -c "import sys; sys.path.append('/home/runner/work/NextGenJAX/NextGenJAX/src'); print('Updated sys.path:', sys.path); import nextgenjax; print('nextgenjax imported successfully')" || { echo "Import failed with error:"; python -c "import sys; sys.path.append('/home/runner/work/NextGenJAX/NextGenJAX/src'); import nextgenjax" 2>&1; exit 1; }
         echo "::endgroup::"
     - name: List installed packages
       run: |
