@@ -28,7 +28,7 @@ def create_model(num_layers, hidden_size, num_heads, dropout_rate):
 def test_create_train_state():
     logger.debug("Starting test_create_train_state")
     try:
-        model = create_model(num_layers=2, hidden_size=4, num_heads=4, dropout_rate=0.1)
+        model = create_model(num_layers=2, hidden_size=28, num_heads=4, dropout_rate=0.1)
         logger.debug("Model created successfully")
 
         rng = jax.random.PRNGKey(0)

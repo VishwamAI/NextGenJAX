@@ -19,9 +19,8 @@ def test_create_train_state():
     rng = random.PRNGKey(0)
 
     dummy_input = jnp.ones((1, 28, 28, 4))
-    params = model.init(rng, dummy_input)
     tx = optax.adam(learning_rate)
-    state = create_train_state(params, model.apply, tx)
+    state = create_train_state(rng, model, tx)
 
     assert 'params' in state
     assert 'opt_state' in state

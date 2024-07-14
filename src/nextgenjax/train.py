@@ -6,6 +6,7 @@ from flax.training import train_state
 from typing import Any, Callable, Dict, Tuple
 from .model import NextGenModel
 import optax
+import haiku as hk
 
 # Type alias for optimizer
 OptimizerType = optax.GradientTransformation
@@ -21,19 +22,19 @@ def create_train_state(
 
     Args:
         rng (jax.random.PRNGKey): The random number generator key.
-        model (Any): The model to be trained or its apply function.
+        model (Any): The model to be trained (Haiku transformed or regular module).
         optimizer (OptimizerType): The optimizer to use.
 
     Returns:
         train_state.TrainState: The initial training state.
     """
-    if callable(model):
-        # For test_training_new.py usage
-        params = model.init(rng, jnp.ones([1, 28, 28, 1]))
-        apply_fn = model
+    dummy_input = jnp.ones([1, 28, 28, 1])
+
+    if isinstance(model, hk.Transformed):
+        params = model.init(rng, dummy_input)
+        apply_fn = model.apply
     else:
-        # For test_training.py usage
-        params = model.init(rng, jnp.ones([1, 28, 28, 1]))["params"]
+        params = model.init(rng, dummy_input)["params"]
         apply_fn = model.apply
 
     return train_state.TrainState.create(
