@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 import pytest
 import optax
-from src.model import NextGenJAXModel
+from nextgenjax.model import NextGenJAXModel
 from flax.training import train_state
 
 
