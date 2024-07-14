@@ -82,7 +82,7 @@ def test_train_model():
     print("Initial model parameter shapes:")
     tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
 
-    def loss_fn(params):
+    def loss_fn(params, rng):
         logits = model.apply(params, rng, batch['image'])
         # Assuming the model output needs to be reduced to match label shape
         predicted = jnp.mean(logits, axis=-1, keepdims=True)
@@ -91,7 +91,7 @@ def test_train_model():
     num_epochs = 2
 
     final_state, metrics_history = train_model(
-        model, [batch], num_epochs, tx, loss_fn, hidden_size
+        model, [batch], num_epochs, tx, lambda params, rng: loss_fn(params, rng), hidden_size
     )
 
     print("Final model parameter shapes:")
