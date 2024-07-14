@@ -3,7 +3,7 @@ import jax.numpy as jnp
 import jax.tree_util
 from jax import value_and_grad
 from flax.training import train_state
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict, Tuple, Union
 from .model import NextGenModel
 import optax
 import haiku as hk
@@ -84,7 +84,7 @@ def train_step(
 
 
 def train_model(
-    model: NextGenModel,
+    model: Union[hk.Transformed, hk.Module],
     train_dataset: Any,
     num_epochs: int,
     optimizer: OptimizerType,
@@ -95,7 +95,7 @@ def train_model(
     Trains the model.
 
     Args:
-        model (NextGenModel): The model to be trained.
+        model (Union[hk.Transformed, hk.Module]): The model to be trained.
         train_dataset (Any): The training dataset.
         num_epochs (int): The number of epochs to train for.
         optimizer (OptimizerType): The optimizer to use.
