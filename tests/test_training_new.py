@@ -90,7 +90,7 @@ def test_train_model():
 
     rng, train_rng = random.split(rng)
     final_state, metrics_history = train_model(
-        model,
+        (2, 4, 0.1),  # num_layers, num_heads, dropout_rate
         [batch],
         num_epochs,
         optax.adam(learning_rate),
