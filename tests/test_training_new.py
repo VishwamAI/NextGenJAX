@@ -50,13 +50,13 @@ def test_train_step():
     print("Initial model parameter shapes:")
     tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
 
-    def loss_fn(params):
+    def loss_fn(params, batch, rng):
         logits = model.apply(params, rng, batch['image'])
         # Assuming the model output needs to be reduced to match label shape
         predicted = jnp.mean(logits, axis=-1, keepdims=True)
         return jnp.mean((predicted - batch['label']) ** 2)
 
-    new_state, metrics = train_step(state, batch, loss_fn, rng, sequence_length, hidden_size)
+    new_state, metrics = train_step(state, batch, rng, loss_fn, lambda x: {})  # Add a dummy metrics_fn
 
     print("Updated model parameter shapes:")
     tree_util.tree_map(lambda x: print(f"{x.shape}"), new_state.params)
@@ -82,7 +82,7 @@ def test_train_model():
     print("Initial model parameter shapes:")
     tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
 
-    def loss_fn(params, rng):
+    def loss_fn(params, batch, rng):
         logits = model.apply(params, rng, batch['image'])
         # Assuming the model output needs to be reduced to match label shape
         predicted = jnp.mean(logits, axis=-1, keepdims=True)
@@ -91,7 +91,7 @@ def test_train_model():
     num_epochs = 2
 
     final_state, metrics_history = train_model(
-        model, [batch], num_epochs, tx, loss_fn, rng, sequence_length
+        state, [batch], num_epochs, loss_fn, lambda x, y: {}, rng  # Add a dummy metrics_fn
     )
 
     print("Final model parameter shapes:")
