@@ -24,8 +24,8 @@ def test_create_train_state():
     rng, init_rng = random.split(rng)
 
     tx = optax.adam(learning_rate)
-    params = model.init(init_rng, jnp.ones((1, 28, 28, 1)))
-    state = create_train_state(params, model.apply, tx, hidden_size)
+    params = model.init(init_rng, jnp.ones((1, sequence_length, hidden_size)))
+    state = create_train_state(init_rng, model, tx, hidden_size, sequence_length)
 
     print("Model parameter shapes:")
     tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
@@ -45,8 +45,8 @@ def test_train_step():
     }
 
     tx = optax.adam(learning_rate)
-    params = model.init(rng, jnp.ones((1, 28, 28, 1)))
-    state = create_train_state(params, model.apply, tx, hidden_size)
+    params = model.init(rng, jnp.ones((1, sequence_length, hidden_size)))
+    state = create_train_state(rng, model, tx, hidden_size, sequence_length)
 
     print("Initial model parameter shapes:")
     tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
@@ -90,7 +90,7 @@ def test_train_model():
 
     rng, train_rng = random.split(rng)
     final_state, metrics_history = train_model(
-        (2, 4, 0.1),  # num_layers, num_heads, dropout_rate
+        model,
         [batch],
         num_epochs,
         optax.adam(learning_rate),

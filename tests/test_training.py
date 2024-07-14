@@ -84,7 +84,7 @@ def test_train_step():
         logger.debug("Optimizer created")
 
         params = model.init(rng, jnp.ones((1, sequence_length, hidden_size)))
-        state = create_train_state(params, model.apply, optimizer, hidden_size)
+        state = create_train_state(rng, model, optimizer, hidden_size, sequence_length)
         logger.debug("TrainState created")
 
         print("Initial model parameter shapes:")
@@ -173,7 +173,9 @@ def test_train_model():
         def train_model(model, dataset, num_epochs, optimizer):
             rng = jax.random.PRNGKey(0)
             rng, init_rng = jax.random.split(rng)
-            state = create_train_state(init_rng, model, optimizer, hidden_size)
+            dummy_input = jnp.ones((1, sequence_length, hidden_size))
+            params = model.init(init_rng, dummy_input)
+            state = create_train_state(init_rng, model, optimizer, hidden_size, sequence_length)
             logger.debug("Initial TrainState created")
             print("Initial model parameter shapes:")
             jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
