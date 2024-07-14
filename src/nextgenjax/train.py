@@ -57,6 +57,8 @@ def train_step(
     state: train_state.TrainState,
     batch: Dict[str, jnp.ndarray],
     loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float],
+    sequence_length: int,
+    hidden_size: int,
 ) -> Tuple[train_state.TrainState, float]:
     """
     Performs a single training step.
@@ -66,6 +68,8 @@ def train_step(
         batch (Dict[str, jnp.ndarray]): A batch of training data.
         loss_fn (Callable[[jnp.ndarray, jnp.ndarray], float]): A function to
         compute the loss given the model's predictions and the true labels.
+        sequence_length (int): The sequence length for the input.
+        hidden_size (int): The hidden size of the model.
 
     Returns:
         Tuple[train_state.TrainState, float]: The updated training state and
@@ -73,7 +77,9 @@ def train_step(
     """
 
     def compute_loss(params):
-        logits = state.apply_fn({"params": params}, batch["image"])
+        # Ensure batch["image"] has the correct shape
+        image = batch["image"].reshape(-1, sequence_length, hidden_size)
+        logits = state.apply_fn({"params": params}, image)
         loss = loss_fn(logits, batch["label"])
         return loss
 
@@ -90,6 +96,7 @@ def train_model(
     optimizer: OptimizerType,
     loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float],
     hidden_size: int,
+    sequence_length: int,
 ) -> Tuple[train_state.TrainState, Dict[str, float]]:
     """
     Trains the model.
@@ -102,6 +109,7 @@ def train_model(
         loss_fn (Callable[[jnp.ndarray, jnp.ndarray], float]): A function to
         compute the loss given the model's predictions and the true labels.
         hidden_size (int): The hidden size of the model.
+        sequence_length (int): The sequence length for the input.
 
     Returns:
         Tuple[train_state.TrainState, Dict[str, float]]: The final training
@@ -112,12 +120,12 @@ def train_model(
             yield batch
 
     rng = jax.random.PRNGKey(0)
-    state = create_train_state(rng, model, optimizer, hidden_size)
+    state = create_train_state(rng, model, optimizer, hidden_size, sequence_length)
 
     for epoch in range(num_epochs):
         epoch_loss = []
         for batch in data_loader(train_dataset):
-            state, loss = train_step(state, batch, loss_fn)
+            state, loss = train_step(state, batch, loss_fn, sequence_length, hidden_size)
             epoch_loss.append(loss)
         avg_loss = jnp.mean(jnp.array(epoch_loss))
         print(f"Epoch {epoch + 1}, Loss: {avg_loss}")
