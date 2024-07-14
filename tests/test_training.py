@@ -34,7 +34,8 @@ def test_train_step():
 
     new_state, loss = train_step(state, batch, loss_fn)
     assert jax.tree_util.tree_all(
-        jax.tree_util.tree_map(lambda x: x is not None, new_state.params))
+        jax.tree_util.tree_map(lambda x: x is not None, new_state.params)
+    )
     assert jnp.all(loss >= 0)
 
 
@@ -43,8 +44,7 @@ def test_train_model():
     model = NextGenModel(layers=layers)
     optimizer = optax.sgd(0.01)
     dataset = [
-        {"image": jnp.ones((1, 28, 28, 1)),
-         "label": jnp.ones((1, 10))}
+        {"image": jnp.ones((1, 28, 28, 1)), "label": jnp.ones((1, 10))}
         for _ in range(10)
     ]
 
@@ -52,11 +52,7 @@ def test_train_model():
         return jnp.mean((logits - labels) ** 2)
 
     final_state, metrics = train_model(
-        model,
-        dataset,
-        num_epochs=1,
-        optimizer=optimizer,
-        loss_fn=loss_fn
+        model, dataset, num_epochs=1, optimizer=optimizer, loss_fn=loss_fn
     )
     assert final_state is not None
     assert "loss" in metrics
