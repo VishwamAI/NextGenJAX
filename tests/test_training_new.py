@@ -21,7 +21,7 @@ def test_create_train_state():
     dummy_input = jnp.ones((1, 28, 28, 4))
     params = model.init(rng, dummy_input)
     tx = optax.adam(learning_rate)
-    state = create_train_state(params, model.apply, tx, rng)
+    state = create_train_state(params, model.apply, tx)
 
     assert 'params' in state
     assert 'opt_state' in state
@@ -41,7 +41,7 @@ def test_train_step():
     dummy_input = jnp.ones((1, 28, 28, 4))
     params = model.init(rng, dummy_input)
     tx = optax.adam(learning_rate)
-    state = create_train_state(params, model.apply, tx, rng)
+    state = create_train_state(params, model.apply, tx)
 
     def loss_fn(params):
         logits = model.apply(params, rng, batch['image'])
@@ -69,7 +69,7 @@ def test_train_model():
     dummy_input = jnp.ones((1, 28, 28, 4))
     params = model.init(rng, dummy_input)
     tx = optax.adam(learning_rate)
-    state = create_train_state(params, model.apply, tx, rng)
+    state = create_train_state(params, model.apply, tx)
 
     def loss_fn(params):
         logits = model.apply(params, rng, batch['image'])
