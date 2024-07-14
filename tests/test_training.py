@@ -99,7 +99,7 @@ def test_train_step():
         @jax.jit
         def train_step(state, batch, rng):
             def loss_fn(params):
-                rng, dropout_rng = jax.random.split(rng)
+                _, dropout_rng = jax.random.split(rng)
                 logits = state.apply_fn(params, dropout_rng, batch['image'], train=True)
                 # Assuming the model output needs to be reduced to match label shape
                 predicted = jnp.mean(logits, axis=-1, keepdims=True)
