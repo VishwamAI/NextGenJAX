@@ -1,11 +1,11 @@
 import jax.numpy as jnp
 from jax import random
-from nextgenjax.model import NextGenJAXModel
+from nextgenjax.model import NextGenModel
 from nextgenjax.train import create_train_state, train_step, train_model
 
 
 def create_model():
-    return NextGenJAXModel(
+    return NextGenModel(
         num_layers=2,
         hidden_size=4,  # Changed from 64 to 4 to match input channels
         num_heads=4,

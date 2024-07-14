@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 import pytest
 import optax
-from nextgenjax.model import NextGenJAXModel
+from nextgenjax.model import NextGenModel
 from flax.training import train_state
 import logging
 
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 def create_model():
     logger.debug("Creating model")
-    return NextGenJAXModel(
+    return NextGenModel(
         num_layers=2,
         hidden_size=4,  # Changed from 64 to 4 to match input channels
         num_heads=4,
