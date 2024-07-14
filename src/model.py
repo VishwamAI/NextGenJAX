@@ -1,8 +1,6 @@
 import jax.numpy as jnp
 import flax.linen as nn
 from typing import Any
-from .layers import DenseLayer, ConvolutionalLayer, TransformerLayer
-from .custom_layers import CustomLayer
 
 
 class NextGenJAXModel(nn.Module):
