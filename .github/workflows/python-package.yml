@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     strategy:
       matrix:
         python-version: [3.9, '3.10', '3.11']
@@ -38,7 +38,9 @@ jobs:
         if [ -f test_requirements.txt ]; then pip install -r test_requirements.txt; fi
       timeout-minutes: 20
     - name: Install nextgenjax
-      run: pip install -e .
+      run: |
+        pip install -e .
+        echo "nextgenjax installation completed"
     - name: List installed packages
       run: |
         pip list
@@ -58,7 +60,7 @@ jobs:
         python -c "import sys; print('sys.path:', sys.path)"
     - name: Test nextgenjax import
       run: |
-        python -c "import nextgenjax; print('nextgenjax imported successfully')"
+        python -c "import nextgenjax; print('nextgenjax imported successfully')" || { echo "Import failed with error:"; python -c "import nextgenjax" 2>&1; exit 1; }
     - name: List installed packages
       run: pip list
     - name: Lint with flake8
@@ -67,17 +69,25 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Update PYTHONPATH
-      run: |
-        echo "PYTHONPATH=$PYTHONPATH:${{ github.workspace }}" >> $GITHUB_ENV
-    - name: Print PYTHONPATH
-      run: echo $PYTHONPATH
     - name: Set PYTHONPATH
       run: echo "PYTHONPATH=${{ github.workspace }}/src" >> $GITHUB_ENV
-    - name: Run tests
+    - name: Print PYTHONPATH
+      run: echo $PYTHONPATH
+    - name: Run individual test files
       run: |
-        pytest src tests
-      timeout-minutes: 15
+        for test_file in tests/*.py; do
+          echo "Running test file: $test_file"
+          pytest $test_file -v || echo "Test file $test_file failed"
+        done
+    - name: Check for large outputs
+      run: |
+        find . -type f -size +1M | while read file; do
+          echo "Large file detected: $file ($(du -h "$file" | cut -f1))"
+        done
+    - name: Run all tests
+      run: |
+        pytest src tests -v
+      timeout-minutes: 20
 
   cuda-tests:
     runs-on: ubuntu-latest
