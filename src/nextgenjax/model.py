@@ -19,14 +19,14 @@ class NextGenModel(hk.Module):
     def encoder_layer(self, x, train: bool):
         # Self-attention
         residual = x
-        x = hk.LayerNorm(axis=-1, create_scale=True, create_offset=True, param_axis=-1, scale_init=hk.initializers.Constant(1.0))(x)
+        x = hk.LayerNorm(axis=-1, create_scale=True, create_offset=True, param_axis=-1, scale_init=hk.initializers.Ones())(x)
         x = hk.MultiHeadAttention(num_heads=self.num_heads, key_size=self.hidden_size // self.num_heads, w_init_scale=2.0)(x, x, x)
         x = hk.dropout(hk.next_rng_key(), self.dropout_rate, x) if train else x
         x = x + residual
 
         # Feed-forward
         residual = x
-        x = hk.LayerNorm(axis=-1, create_scale=True, create_offset=True, param_axis=-1, scale_init=hk.initializers.Constant(1.0))(x)
+        x = hk.LayerNorm(axis=-1, create_scale=True, create_offset=True, param_axis=-1, scale_init=hk.initializers.Ones())(x)
         x = hk.Linear(output_size=self.hidden_size * 4)(x)
         x = jax.nn.gelu(x)
         x = hk.Linear(output_size=self.hidden_size)(x)
