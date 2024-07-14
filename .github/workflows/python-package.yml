@@ -201,7 +201,7 @@ jobs:
         python -c "import sys; print('\n'.join(sys.path))"
         echo "Attempting to import nextgenjax:"
         python -c "import nextgenjax; print(f'nextgenjax imported successfully from {nextgenjax.__file__}')" || echo "Failed to import nextgenjax"
-        pytest tests/unit -v
+        pytest tests -v
         echo "::endgroup::"
       timeout-minutes: 10
 
