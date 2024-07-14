@@ -13,6 +13,11 @@ print("Executing test_training.py")
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+# Define constants
+sequence_length = 32
+batch_size = 32
+hidden_size = 64
+
 def create_model(num_layers, hidden_size, num_heads, dropout_rate):
     logger.debug("Creating model")
     def _model(x, train=False):
@@ -28,11 +33,11 @@ def create_model(num_layers, hidden_size, num_heads, dropout_rate):
 def test_create_train_state():
     logger.debug("Starting test_create_train_state")
     try:
-        model = create_model(num_layers=2, hidden_size=28, num_heads=4, dropout_rate=0.1)
+        model = create_model(num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1)
         logger.debug("Model created successfully")
 
         rng = jax.random.PRNGKey(0)
-        dummy_input = jnp.ones((1, 28, 28, 1))
+        dummy_input = jnp.ones((1, sequence_length, hidden_size))
         optimizer = optax.adam(1e-3)
         logger.debug("Optimizer created")
 
@@ -48,7 +53,7 @@ def test_create_train_state():
 def test_train_step():
     logger.debug("Starting test_train_step")
     try:
-        model = create_model(num_layers=2, hidden_size=4, num_heads=4, dropout_rate=0.1)
+        model = create_model(num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1)
         logger.debug("Model created")
 
         rng = jax.random.PRNGKey(0)
@@ -75,8 +80,8 @@ def test_train_step():
         logger.debug("train_step function defined")
 
         batch = {
-            'image': jnp.ones((32, 28, 28, 1)),
-            'label': jnp.ones((32, 1))
+            'image': jnp.ones((batch_size, sequence_length, hidden_size)),
+            'label': jnp.ones((batch_size, 1))
         }
         logger.debug("Batch created")
 

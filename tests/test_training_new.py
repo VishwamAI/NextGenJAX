@@ -5,6 +5,10 @@ import optax
 from nextgenjax.model import NextGenModel
 from nextgenjax.train import create_train_state, train_step, train_model
 
+# Define constants
+sequence_length = 32
+batch_size = 32
+hidden_size = 64
 
 def create_model(num_layers, hidden_size, num_heads, dropout_rate):
     def _model(x, train=False):
@@ -12,13 +16,12 @@ def create_model(num_layers, hidden_size, num_heads, dropout_rate):
         return model(x, train)
     return hk.transform(_model)
 
-
 def test_create_train_state():
-    model = create_model(num_layers=2, hidden_size=4, num_heads=4, dropout_rate=0.1)
+    model = create_model(num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1)
     learning_rate = 0.001
     rng = random.PRNGKey(0)
 
-    dummy_input = jnp.ones((1, 28, 28, 1))
+    dummy_input = jnp.ones((1, sequence_length, hidden_size))
     tx = optax.adam(learning_rate)
     state = create_train_state(rng, model, tx)
 
@@ -26,18 +29,17 @@ def test_create_train_state():
     assert 'opt_state' in state
     assert callable(state.apply_fn)
 
-
 def test_train_step():
-    model = create_model(num_layers=2, hidden_size=4, num_heads=4, dropout_rate=0.1)
+    model = create_model(num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1)
     learning_rate = 0.001
     rng = random.PRNGKey(0)
 
     batch = {
-        'image': jnp.ones((32, 28, 28, 1)),
-        'label': jnp.ones((32, 1))
+        'image': jnp.ones((batch_size, sequence_length, hidden_size)),
+        'label': jnp.ones((batch_size, 1))
     }
 
-    dummy_input = jnp.ones((1, 28, 28, 1))
+    dummy_input = jnp.ones((1, sequence_length, hidden_size))
     tx = optax.adam(learning_rate)
     state = create_train_state(rng, model, tx)
 
@@ -55,16 +57,16 @@ def test_train_step():
 
 
 def test_train_model():
-    model = create_model(num_layers=2, hidden_size=4, num_heads=4, dropout_rate=0.1)
+    model = create_model(num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1)
     learning_rate = 0.001
     rng = random.PRNGKey(0)
 
     batch = {
-        'image': jnp.ones((32, 28, 28, 1)),
-        'label': jnp.ones((32, 1))
+        'image': jnp.ones((batch_size, sequence_length, hidden_size)),
+        'label': jnp.ones((batch_size, 1))
     }
 
-    dummy_input = jnp.ones((1, 28, 28, 1))
+    dummy_input = jnp.ones((1, sequence_length, hidden_size))
     tx = optax.adam(learning_rate)
     state = create_train_state(rng, model, tx)
 
@@ -75,7 +77,6 @@ def test_train_model():
         return jnp.mean((predicted - batch['label']) ** 2)
 
     num_epochs = 2
-    batch_size = 32
 
     final_state, metrics_history = train_model(
         state, [batch], num_epochs, batch_size, loss_fn
