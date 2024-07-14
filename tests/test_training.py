@@ -15,15 +15,12 @@ logger = logging.getLogger(__name__)
 
 def create_model(num_layers, hidden_size, num_heads, dropout_rate):
     logger.debug("Creating model")
-    def _model(x, train=False):
-        model = NextGenModel(
-            num_layers=num_layers,
-            hidden_size=hidden_size,
-            num_heads=num_heads,
-            dropout_rate=dropout_rate
-        )
-        return model(x, train)
-    return hk.transform(_model)
+    return NextGenModel(
+        num_layers=num_layers,
+        hidden_size=hidden_size,
+        num_heads=num_heads,
+        dropout_rate=dropout_rate
+    )
 
 def test_create_train_state():
     logger.debug("Starting test_create_train_state")
@@ -39,7 +36,7 @@ def test_create_train_state():
         tx = optax.adam(1e-3)
         logger.debug("Optimizer created")
 
-        state = create_train_state(params, model.apply, tx)
+        state = create_train_state(model, tx)
         logger.debug("TrainState created")
 
         assert isinstance(state, train_state.TrainState)
@@ -62,13 +59,13 @@ def test_train_step():
         tx = optax.adam(1e-3)
         logger.debug("Optimizer created")
 
-        state = create_train_state(params, model.apply, tx)
+        state = create_train_state(model, tx)
         logger.debug("TrainState created")
 
         @jax.jit
         def train_step(state, batch, rng):
             def loss_fn(params):
-                logits = model.apply(params, rng, batch['image'])
+                logits = model.apply({'params': params}, batch['image'])
                 # Assuming the model output needs to be reduced to match label shape
                 predicted = jnp.mean(logits, axis=-1, keepdims=True)
                 return jnp.mean((predicted - batch['label']) ** 2)
@@ -84,7 +81,7 @@ def test_train_step():
         }
         logger.debug("Batch created")
 
-        new_state, loss = train_step(state, batch)
+        new_state, loss = train_step(state, batch, rng)
         logger.debug(f"train_step executed. Loss: {loss}")
 
         assert isinstance(new_state, train_state.TrainState)
@@ -112,7 +109,7 @@ def test_train_model():
         @jax.jit
         def train_step(state, batch, rng):
             def loss_fn(params):
-                logits = state.apply_fn({'params': params}, rng, batch['image'])
+                logits = model(batch['image'])
                 # Assuming the model output needs to be reduced to match label shape
                 predicted = jnp.mean(logits, axis=-1, keepdims=True)
                 return jnp.mean((predicted - batch['label']) ** 2)
@@ -122,14 +119,17 @@ def test_train_model():
 
         logger.debug("train_step function defined")
 
-        def train_model(params, model, dataset, num_epochs, tx):
-            state = create_train_state(params, model.apply, tx)
+        def train_model(model, dataset, num_epochs, tx):
+            rng = jax.random.PRNGKey(0)
+            dummy_input = jnp.ones((1, 28, 28, 4))
+            params = model.init(rng, dummy_input)
+            state = create_train_state(model, tx)
             logger.debug("Initial TrainState created")
 
             for epoch in range(num_epochs):
                 logger.debug(f"Starting epoch {epoch + 1}")
                 for batch in dataset:
-                    state, loss = train_step(state, batch)
+                    state, loss = train_step(state, batch, rng)
                 logger.debug(f"Epoch {epoch + 1} completed. Final loss: {loss}")
 
             return state, {"loss": loss}
@@ -141,10 +141,10 @@ def test_train_model():
         params = model.init(rng, dummy_input)
         logger.debug("Model parameters initialized")
 
-        state = create_train_state(params, model.apply, tx)
+        state = create_train_state(model, tx)
         logger.debug("TrainState created")
 
-        final_state, metrics = train_model(state, dataset, num_epochs=1)
+        final_state, metrics = train_model(model, dataset, num_epochs=1, tx=tx)
         logger.debug(f"train_model executed. Final loss: {metrics['loss']}")
 
         assert isinstance(final_state, train_state.TrainState)
