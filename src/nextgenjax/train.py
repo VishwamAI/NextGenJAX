@@ -126,6 +126,9 @@ def train_model(
         for batch in dataset:
             yield batch
 
+    if len(model_params) != 3:
+        raise ValueError("model_params must contain exactly 3 elements: num_layers, num_heads, and dropout_rate")
+
     model = create_model(model_params[0], hidden_size, model_params[1], model_params[2])
     rng, init_rng = jax.random.split(rng)
     state = create_train_state(init_rng, model, optimizer, hidden_size, sequence_length)
