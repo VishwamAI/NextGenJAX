@@ -12,21 +12,22 @@ print("Executing test_training.py")
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-def create_model():
+def create_model(num_layers, hidden_size, num_heads, dropout_rate):
     logger.debug("Creating model")
-    def _model():
-        return NextGenModel(
-            num_layers=2,
-            hidden_size=4,  # Changed from 64 to 4 to match input channels
-            num_heads=4,
-            dropout_rate=0.1
+    def _model(x, train=False):
+        model = NextGenModel(
+            num_layers=num_layers,
+            hidden_size=hidden_size,
+            num_heads=num_heads,
+            dropout_rate=dropout_rate
         )
+        return model(x, train)
     return hk.transform(_model)
 
 def test_create_train_state():
     logger.debug("Starting test_create_train_state")
     try:
-        model = create_model()
+        model = create_model(num_layers=2, hidden_size=4, num_heads=4, dropout_rate=0.1)
         logger.debug("Model created successfully")
 
         rng = jax.random.PRNGKey(0)
@@ -51,7 +52,7 @@ def test_create_train_state():
 def test_train_step():
     logger.debug("Starting test_train_step")
     try:
-        model = create_model()
+        model = create_model(num_layers=2, hidden_size=4, num_heads=4, dropout_rate=0.1)
         logger.debug("Model created")
 
         rng = jax.random.PRNGKey(0)
@@ -99,7 +100,7 @@ def test_train_step():
 def test_train_model():
     logger.debug("Starting test_train_model")
     try:
-        model = create_model()
+        model = create_model(num_layers=2, hidden_size=4, num_heads=4, dropout_rate=0.1)
         logger.debug("Model created")
 
         tx = optax.adam(1e-3)

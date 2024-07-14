@@ -5,25 +5,21 @@ from nextgenjax.model import NextGenModel
 from nextgenjax.train import create_train_state, train_step, train_model
 
 
-def create_model():
-    def _model():
-        return NextGenModel(
-            num_layers=2,
-            hidden_size=4,
-            num_heads=4,
-            dropout_rate=0.1
-        )
+def create_model(num_layers, hidden_size, num_heads, dropout_rate):
+    def _model(x, train=False):
+        model = NextGenModel(num_layers, hidden_size, num_heads, dropout_rate)
+        return model(x, train)
     return hk.transform(_model)
 
 
 def test_create_train_state():
-    model = create_model()
+    model = create_model(num_layers=2, hidden_size=4, num_heads=4, dropout_rate=0.1)
     learning_rate = 0.001
     rng = random.PRNGKey(0)
 
     dummy_input = jnp.ones((1, 28, 28, 4))
     params = model.init(rng, dummy_input)
-    state = create_train_state(rng, model, dummy_input, learning_rate)
+    state = create_train_state(rng, model, learning_rate)
 
     assert 'params' in state
     assert 'opt_state' in state
@@ -31,7 +27,7 @@ def test_create_train_state():
 
 
 def test_train_step():
-    model = create_model()
+    model = create_model(num_layers=2, hidden_size=4, num_heads=4, dropout_rate=0.1)
     learning_rate = 0.001
     rng = random.PRNGKey(0)
 
@@ -41,7 +37,7 @@ def test_train_step():
     }
 
     dummy_input = jnp.ones((1, 28, 28, 4))
-    state = create_train_state(rng, model, dummy_input, learning_rate)
+    state = create_train_state(rng, model, learning_rate)
 
     def loss_fn(params):
         logits = model.apply(params, None, batch['image'])
@@ -57,7 +53,7 @@ def test_train_step():
 
 
 def test_train_model():
-    model = create_model()
+    model = create_model(num_layers=2, hidden_size=4, num_heads=4, dropout_rate=0.1)
     learning_rate = 0.001
     rng = random.PRNGKey(0)
 
@@ -67,7 +63,7 @@ def test_train_model():
     }
 
     dummy_input = jnp.ones((1, 28, 28, 4))
-    state = create_train_state(rng, model, dummy_input, learning_rate)
+    state = create_train_state(rng, model, learning_rate)
 
     def loss_fn(params):
         logits = model.apply(params, None, batch['image'])
