@@ -17,7 +17,7 @@ def create_model():
 
 def test_create_train_state():
     model = create_model()
-    params = model.init(jax.random.PRNGKey(0), jnp.ones((1, 28, 28, 1)))['params']
+    params = model.init(jax.random.PRNGKey(0), jnp.ones((1, 28, 28, 4)))['params']
     tx = optax.adam(1e-3)
     state = train_state.TrainState.create(
         apply_fn=model.apply, params=params, tx=tx
@@ -27,7 +27,7 @@ def test_create_train_state():
 
 def test_train_step():
     model = create_model()
-    params = model.init(jax.random.PRNGKey(0), jnp.ones((1, 28, 28, 1)))['params']
+    params = model.init(jax.random.PRNGKey(0), jnp.ones((1, 28, 28, 4)))['params']
     tx = optax.adam(1e-3)
     state = train_state.TrainState.create(
         apply_fn=model.apply, params=params, tx=tx
@@ -43,7 +43,7 @@ def test_train_step():
         return state, loss
 
     batch = {
-        'image': jnp.ones((32, 28, 28, 1)),
+        'image': jnp.ones((32, 28, 28, 4)),
         'label': jnp.ones((32, 1))
     }
     new_state, loss = train_step(state, batch)
@@ -55,7 +55,7 @@ def test_train_model():
     model = create_model()
     tx = optax.adam(1e-3)
     dataset = [
-        {"image": jnp.ones((1, 28, 28, 1)), "label": jnp.ones((1, 1))}
+        {"image": jnp.ones((1, 28, 28, 4)), "label": jnp.ones((1, 1))}
         for _ in range(10)
     ]
 
@@ -80,7 +80,7 @@ def test_train_model():
         return state, {"loss": loss}
 
     rng = jax.random.PRNGKey(0)
-    dummy_input = jnp.ones((1, 28, 28, 1))
+    dummy_input = jnp.ones((1, 28, 28, 4))
     params = model.init(rng, dummy_input)['params']
     final_state, metrics = train_model(
         params, model, dataset, num_epochs=1, tx=tx
