@@ -6,7 +6,7 @@ dm-haiku==0.0.10
 fairscale==0.4.13
 flax==0.8.5
 numpy==1.24.3
-optax==0.1.7
+optax==0.2.3
 scipy==1.10.1
 transformers==4.30.2
 -e .
