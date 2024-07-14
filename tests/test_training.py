@@ -1,5 +1,6 @@
 import jax
 import jax.numpy as jnp
+import jax.tree_util as tree_util
 import pytest
 import optax
 import haiku as hk
@@ -44,6 +45,9 @@ def test_create_train_state():
         state = create_train_state(rng, model, optimizer)
         logger.debug("TrainState created")
 
+        print("Model parameter shapes:")
+        jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
+
         assert isinstance(state, train_state.TrainState)
         logger.debug("test_create_train_state completed successfully")
     except Exception as e:
@@ -62,6 +66,9 @@ def test_train_step():
 
         state = create_train_state(rng, model, optimizer)
         logger.debug("TrainState created")
+
+        print("Initial model parameter shapes:")
+        jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
 
         @jax.jit
         def train_step(state, batch, rng):
@@ -87,6 +94,9 @@ def test_train_step():
 
         new_state, metrics = train_step(state, batch, rng)
         logger.debug(f"train_step executed. Loss: {metrics['loss']}")
+
+        print("Updated model parameter shapes:")
+        jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), new_state.params)
 
         assert isinstance(new_state, train_state.TrainState)
         assert isinstance(metrics['loss'], jnp.ndarray)
@@ -127,6 +137,8 @@ def test_train_model():
             rng = jax.random.PRNGKey(0)
             state = create_train_state(rng, model, optimizer)
             logger.debug("Initial TrainState created")
+            print("Initial model parameter shapes:")
+            jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
 
             for epoch in range(num_epochs):
                 logger.debug(f"Starting epoch {epoch + 1}")
@@ -134,6 +146,8 @@ def test_train_model():
                     state, metrics = train_step(state, batch, rng)
                 logger.debug(f"Epoch {epoch + 1} completed. Final loss: {metrics['loss']}")
 
+            print("Final model parameter shapes:")
+            jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
             return state, metrics
 
         logger.debug("train_model function defined")
@@ -141,6 +155,8 @@ def test_train_model():
         rng = jax.random.PRNGKey(0)
         state = create_train_state(rng, model, optimizer)
         logger.debug("TrainState created")
+        print("Initial model parameter shapes:")
+        jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
 
         final_state, metrics = train_model(model, dataset, num_epochs=1, optimizer=optimizer)
         logger.debug(f"train_model executed. Final loss: {metrics['loss']}")

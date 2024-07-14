@@ -2,6 +2,7 @@ import jax.numpy as jnp
 import haiku as hk
 from jax import random
 import optax
+import jax.tree_util as tree_util
 from nextgenjax.model import NextGenModel
 from nextgenjax.train import create_train_state, train_step, train_model
 
@@ -25,6 +26,9 @@ def test_create_train_state():
     tx = optax.adam(learning_rate)
     state = create_train_state(rng, model, tx)
 
+    print("Model parameter shapes:")
+    tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
+
     assert 'params' in state
     assert 'opt_state' in state
     assert callable(state.apply_fn)
@@ -43,6 +47,9 @@ def test_train_step():
     tx = optax.adam(learning_rate)
     state = create_train_state(rng, model, tx)
 
+    print("Initial model parameter shapes:")
+    tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
+
     def loss_fn(params):
         logits = model.apply(params, rng, batch['image'])
         # Assuming the model output needs to be reduced to match label shape
@@ -51,10 +58,12 @@ def test_train_step():
 
     new_state, metrics = train_step(state, batch, loss_fn)
 
+    print("Updated model parameter shapes:")
+    tree_util.tree_map(lambda x: print(f"{x.shape}"), new_state.params)
+
     assert 'loss' in metrics
     assert isinstance(metrics['loss'], float)
     assert new_state.step == state.step + 1
-
 
 def test_train_model():
     model = create_model(num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1)
@@ -70,6 +79,9 @@ def test_train_model():
     tx = optax.adam(learning_rate)
     state = create_train_state(rng, model, tx)
 
+    print("Initial model parameter shapes:")
+    tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
+
     def loss_fn(params):
         logits = model.apply(params, rng, batch['image'])
         # Assuming the model output needs to be reduced to match label shape
@@ -81,6 +93,9 @@ def test_train_model():
     final_state, metrics_history = train_model(
         state, [batch], num_epochs, batch_size, loss_fn
     )
+
+    print("Final model parameter shapes:")
+    tree_util.tree_map(lambda x: print(f"{x.shape}"), final_state.params)
 
     assert len(metrics_history) == num_epochs
     assert all('loss' in epoch_metrics for epoch_metrics in metrics_history)
