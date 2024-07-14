@@ -95,7 +95,7 @@ def train_step(
 
 
 def train_model(
-    model_params: Dict[str, Any],
+    model_params: Tuple[int, int, float],
     train_dataset: Any,
     num_epochs: int,
     optimizer: OptimizerType,
@@ -108,7 +108,7 @@ def train_model(
     Trains the model.
 
     Args:
-        model_params (Dict[str, Any]): Parameters for creating the model.
+        model_params (Tuple[int, int, float]): Parameters for creating the model (num_layers, num_heads, dropout_rate).
         train_dataset (Any): The training dataset.
         num_epochs (int): The number of epochs to train for.
         optimizer (OptimizerType): The optimizer to use.
@@ -126,7 +126,7 @@ def train_model(
         for batch in dataset:
             yield batch
 
-    model = create_model(model_params["num_layers"], hidden_size, model_params["num_heads"], model_params["dropout_rate"])
+    model = create_model(model_params[0], hidden_size, model_params[1], model_params[2])
     rng, init_rng = jax.random.split(rng)
     state = create_train_state(init_rng, model, optimizer, hidden_size, sequence_length)
 
