@@ -78,6 +78,9 @@ def test_train_model():
         'label': jnp.ones((batch_size, 1))
     }
 
+    # Add assertion to catch shape mismatches
+    assert batch['image'].shape == (batch_size, sequence_length, hidden_size), f"Expected shape ({batch_size}, {sequence_length}, {hidden_size}), got {batch['image'].shape}"
+
     def loss_fn(params, batch, rng):
         logits = model.apply(params, rng, batch['image'], train=True)
         # Assuming the model output needs to be reduced to match label shape

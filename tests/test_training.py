@@ -149,10 +149,13 @@ def test_train_model():
         logger.debug("Optimizer created")
 
         dataset = [
-            {"image": jnp.ones((1, 28, 28, 1)), "label": jnp.zeros(1, dtype=jnp.int32)}
+            {"image": jnp.ones((1, sequence_length, hidden_size)), "label": jnp.zeros(1, dtype=jnp.int32)}
             for _ in range(10)
         ]
         logger.debug("Dataset created")
+
+        # Add assertion to catch shape mismatches
+        assert dataset[0]["image"].shape == (1, sequence_length, hidden_size), f"Expected shape (1, {sequence_length}, {hidden_size}), got {dataset[0]['image'].shape}"
 
         @jax.jit
         def train_step(state, batch, rng):
@@ -192,7 +195,7 @@ def test_train_model():
         rng, init_rng = jax.random.split(rng)
         dummy_input = jnp.ones((1, sequence_length, hidden_size))
         params = model.init(init_rng, dummy_input)
-        state = create_train_state(params, model.apply, optimizer)
+        state = create_train_state(params, model.apply, optimizer, hidden_size)
         logger.debug("TrainState created")
         print("Initial model parameter shapes:")
         jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
