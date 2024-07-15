@@ -122,12 +122,16 @@ def test_train_model():
 
         rng, train_rng = random.split(rng)
         logger.debug("Starting train_model function")
+
+        def loss_fn_wrapper(params, batch, rng):
+            return loss_fn(params, model.apply, batch, rng)
+
         final_state, metrics_history = train_model(
             model_params=(2, 4, 0.1),  # num_layers, num_heads, dropout_rate
             train_dataset=[batch],
             num_epochs=num_epochs,
             optimizer=optax.adam(learning_rate),
-            loss_fn=loss_fn,
+            loss_fn=loss_fn_wrapper,
             rng=train_rng,
             hidden_size=hidden_size,
             sequence_length=sequence_length
