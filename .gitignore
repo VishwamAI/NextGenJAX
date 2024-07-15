@@ -25,3 +25,6 @@ nextgenjax-venv/
 
 # macOS files
 .DS_Store
+
+# Ignore egg-info directories
+*.egg-info/

@@ -1,8 +1,0 @@
-LICENSE
-README.md
-setup.py
-src/nextgenjax.egg-info/PKG-INFO
-src/nextgenjax.egg-info/SOURCES.txt
-src/nextgenjax.egg-info/dependency_links.txt
-src/nextgenjax.egg-info/requires.txt
-src/nextgenjax.egg-info/top_level.txt
