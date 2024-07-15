@@ -10,6 +10,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+build/
+dist/
+*.egg-info/
 
 # Python compiled files
 *.pyc
