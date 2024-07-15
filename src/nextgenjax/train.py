@@ -54,6 +54,12 @@ def create_train_state(
     else:
         raise TypeError("Model must be either a Haiku transformed function or a regular Haiku module")
 
+    # Add print statement to check apply_fn output
+    print(f"apply_fn output type: {type(apply_fn(params, rng, dummy_input))}")
+
+    # Add print statement to check optimizer type
+    print(f"Optimizer type: {type(optimizer)}")
+
     return train_state.TrainState.create(
         apply_fn=apply_fn,
         params=params,
@@ -84,6 +90,8 @@ def train_step(
 
     def loss_and_grad(params):
         loss, new_rng = loss_fn(params, batch, rng)
+        print(f"Loss type: {type(loss)}, Loss value: {loss}")
+        print(f"New RNG type: {type(new_rng)}")
         return loss, new_rng
 
     grad_fn = jax.value_and_grad(loss_and_grad, has_aux=True)
