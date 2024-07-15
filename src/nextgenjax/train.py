@@ -154,13 +154,13 @@ def train_model(
             yield batch
 
     def debug_loss_fn(params, apply_fn, batch, rng):
-        jax.debug.print("Debug loss_fn - Params type: {}", type(params))
-        jax.debug.print("Debug loss_fn - Apply_fn type: {}", type(apply_fn))
-        jax.debug.print("Debug loss_fn - Batch type: {}", type(batch))
-        jax.debug.print("Debug loss_fn - RNG type: {}", type(rng))
+        print(f"Debug loss_fn - Params type: {type(params)}")
+        print(f"Debug loss_fn - Apply_fn type: {type(apply_fn)}")
+        print(f"Debug loss_fn - Batch type: {type(batch)}")
+        print(f"Debug loss_fn - RNG type: {type(rng)}")
         loss = loss_fn(params, apply_fn, batch, rng)
-        jax.debug.print("Debug loss_fn - Loss type: {}", type(loss))
-        jax.debug.print("Debug loss_fn - Loss value: {}", loss)
+        print(f"Debug loss_fn - Loss type: {type(loss)}")
+        print(f"Debug loss_fn - Loss value: {loss}")
         return loss
 
     if len(model_params) != 3:

@@ -84,7 +84,7 @@ def test_train_step():
         tree_util.tree_map(lambda x: logger.debug(f"{x.shape}"), state.params)
 
         rng, subkey = random.split(rng)
-        new_state, metrics, _ = train_step(state, batch, subkey)
+        new_state, metrics, _ = train_step(state, batch, loss_fn, subkey)
         logger.debug(f"Train step completed. Metrics: {metrics}")
 
         logger.debug("Updated model parameter shapes:")
