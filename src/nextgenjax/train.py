@@ -3,6 +3,7 @@
 import jax
 import jax.numpy as jnp
 import jax.tree_util
+import jax.debug
 from jax import value_and_grad
 from flax.training import train_state
 from typing import Any, Callable, Dict, Tuple, Union
@@ -89,12 +90,18 @@ def train_step(
     """
 
     def loss_and_grad(params):
+        jax.debug.print("Params type: {}", type(params))
+        jax.debug.print("State apply_fn type: {}", type(state.apply_fn))
+        jax.debug.print("Batch type: {}", type(batch))
+        jax.debug.print("RNG type: {}", type(rng))
         loss = loss_fn(params, state.apply_fn, batch, rng)
-        print(f"Loss type: {type(loss)}, Loss value: {loss}")
+        jax.debug.print("Loss type: {}", type(loss))
+        jax.debug.print("Loss value: {}", loss)
         return loss
 
     grad_fn = jax.value_and_grad(loss_and_grad)
     loss, grads = grad_fn(state.params)
+    jax.debug.print("Grads type: {}", type(grads))
     state = state.apply_gradients(grads=grads)
     metrics = {"loss": loss}
     return state, metrics, rng
@@ -132,6 +139,16 @@ def train_model(
         for batch in dataset:
             yield batch
 
+    def debug_loss_fn(params, apply_fn, batch, rng):
+        jax.debug.print("Debug loss_fn - Params type: {}", type(params))
+        jax.debug.print("Debug loss_fn - Apply_fn type: {}", type(apply_fn))
+        jax.debug.print("Debug loss_fn - Batch type: {}", type(batch))
+        jax.debug.print("Debug loss_fn - RNG type: {}", type(rng))
+        loss = loss_fn(params, apply_fn, batch, rng)
+        jax.debug.print("Debug loss_fn - Loss type: {}", type(loss))
+        jax.debug.print("Debug loss_fn - Loss value: {}", loss)
+        return loss
+
     if len(model_params) != 3:
         raise ValueError("model_params must contain exactly 3 elements: num_layers, num_heads, and dropout_rate")
 
@@ -144,7 +161,7 @@ def train_model(
         epoch_loss = []
         for batch in data_loader(train_dataset):
             rng, step_rng = jax.random.split(rng)
-            state, metrics, rng = train_step(state, batch, loss_fn, step_rng)
+            state, metrics, rng = train_step(state, batch, debug_loss_fn, step_rng)
             epoch_loss.append(metrics["loss"])
         avg_loss = jnp.mean(jnp.array(epoch_loss))
         metrics_history.append({"loss": avg_loss})
