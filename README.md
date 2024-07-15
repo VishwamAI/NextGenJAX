@@ -11,7 +11,12 @@ NextGenJAX is an advanced neural network library built on top of JAX, designed t
 - Comprehensive test suite to ensure model correctness and performance
 
 ## Installation
-To install NextGenJAX, clone the repository and install the required dependencies:
+To install NextGenJAX, you can use pip:
+```bash
+pip install nextgenjax
+```
+
+For development, clone the repository and install the required dependencies:
 ```bash
 git clone https://github.com/VishwamAI/NextGenJAX.git
 cd NextGenJAX
@@ -59,13 +64,28 @@ loss_fn = ...  # Your loss function here
 train_model(train_state, train_data, loss_fn, num_epochs=10)
 ```
 
+## Development Setup
+To set up a development environment:
+
+1. Clone the repository
+2. Install development dependencies: `pip install -r requirements-dev.txt`
+3. Run tests using pytest: `pytest tests/`
+
+We use GitHub Actions for continuous integration and deployment. Our CI/CD workflow runs tests on Python 3.9 to ensure compatibility and code quality.
+
 ## Contributing
-We welcome contributions to NextGenJAX! If you would like to contribute, please follow these steps:
+We welcome contributions to NextGenJAX! Please follow these steps:
+
 1. Fork the repository
 2. Create a new branch (`git checkout -b feature/your-feature`)
 3. Make your changes and commit them (`git commit -am 'Add new feature'`)
 4. Push to the branch (`git push origin feature/your-feature`)
 5. Create a new pull request using the [Pull Request Template](.github/PULL_REQUEST_TEMPLATE.md)
+
+Please adhere to our coding standards:
+- Follow PEP 8 guidelines
+- Write unit tests for new features
+- Update documentation as necessary
 
 For more detailed guidelines, please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) file.
 
@@ -81,5 +101,12 @@ NextGenJAX is licensed under the MIT License. See the [LICENSE](LICENSE) file fo
 
 ## Acknowledgements
 NextGenJAX is inspired by the work of Google DeepMind and the JAX and Flax communities. We thank them for their contributions to the field of machine learning.
+
+## Contact Information
+For support or questions about NextGenJAX, please reach out to:
+
+- Email: support@nextgenjax.com
+- GitHub Issues: [https://github.com/VishwamAI/NextGenJAX/issues](https://github.com/VishwamAI/NextGenJAX/issues)
+- Community Forum: [https://community.nextgenjax.com](https://community.nextgenjax.com)
 
 Last updated: 2023-05-10 12:00:00 UTC
