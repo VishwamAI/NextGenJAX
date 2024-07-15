@@ -26,11 +26,12 @@ def create_model(num_layers, hidden_size, num_heads, dropout_rate):
 
 def loss_fn(params, apply_fn, batch, rng):
     logger.debug("Calculating loss")
+    rng, new_rng = jax.random.split(rng)
     logits = apply_fn(params, rng, batch['image'], train=True)
     predicted = jnp.mean(logits, axis=-1, keepdims=True)
     loss = jnp.mean((predicted - batch['label']) ** 2)
     logger.debug(f"Calculated loss: {loss}")
-    return loss
+    return loss, new_rng
 
 def test_create_train_state():
     logger.debug("Starting test_create_train_state")

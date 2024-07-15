@@ -15,10 +15,11 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def loss_fn(params, apply_fn, batch, rng):
-    _, dropout_rng = jax.random.split(rng)
+    rng, dropout_rng = jax.random.split(rng)
     logits = apply_fn(params, dropout_rng, batch['image'], train=True)
     predicted = jnp.mean(logits, axis=-1, keepdims=True)
-    return jnp.mean((predicted - batch['label']) ** 2)
+    loss = jnp.mean((predicted - batch['label']) ** 2)
+    return loss, rng
 
 def find_layer_norm_scale(params):
     found = []
