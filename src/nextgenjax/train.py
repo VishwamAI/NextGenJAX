@@ -70,7 +70,7 @@ def create_train_state(
 def train_step(
     state: train_state.TrainState,
     batch: Dict[str, jnp.ndarray],
-    loss_fn: Callable[[jnp.ndarray, Dict[str, jnp.ndarray], jax.random.PRNGKey], float],
+    loss_fn: Callable[[jnp.ndarray, Callable, Dict[str, jnp.ndarray], jax.random.PRNGKey], float],
     rng: jax.random.PRNGKey,
 ) -> Tuple[train_state.TrainState, Dict[str, float], jax.random.PRNGKey]:
     """
@@ -79,8 +79,8 @@ def train_step(
     Args:
         state (train_state.TrainState): The current training state.
         batch (Dict[str, jnp.ndarray]): A batch of training data.
-        loss_fn (Callable[[jnp.ndarray, Dict[str, jnp.ndarray], jax.random.PRNGKey], float]): A function to
-        compute the loss given the model parameters, batch, and RNG key.
+        loss_fn (Callable[[jnp.ndarray, Callable, Dict[str, jnp.ndarray], jax.random.PRNGKey], float]): A function to
+        compute the loss given the model parameters, apply function, batch, and RNG key.
         rng (jax.random.PRNGKey): The random number generator key.
 
     Returns:
@@ -89,16 +89,15 @@ def train_step(
     """
 
     def loss_and_grad(params):
-        loss, new_rng = loss_fn(params, batch, rng)
+        loss = loss_fn(params, state.apply_fn, batch, rng)
         print(f"Loss type: {type(loss)}, Loss value: {loss}")
-        print(f"New RNG type: {type(new_rng)}")
-        return loss, new_rng
+        return loss
 
-    grad_fn = jax.value_and_grad(loss_and_grad, has_aux=True)
-    (loss, new_rng), grads = grad_fn(state.params)
+    grad_fn = jax.value_and_grad(loss_and_grad)
+    loss, grads = grad_fn(state.params)
     state = state.apply_gradients(grads=grads)
     metrics = {"loss": loss}
-    return state, metrics, new_rng
+    return state, metrics, rng
 
 
 def train_model(
@@ -106,7 +105,7 @@ def train_model(
     train_dataset: Any,
     num_epochs: int,
     optimizer: OptimizerType,
-    loss_fn: Callable[[jnp.ndarray, Dict[str, jnp.ndarray], jax.random.PRNGKey], Tuple[float, jax.random.PRNGKey]],
+    loss_fn: Callable[[jnp.ndarray, Callable, Dict[str, jnp.ndarray], jax.random.PRNGKey], float],
     hidden_size: int,
     sequence_length: int,
     rng: jax.random.PRNGKey,
@@ -119,8 +118,8 @@ def train_model(
         train_dataset (Any): The training dataset.
         num_epochs (int): The number of epochs to train for.
         optimizer (OptimizerType): The optimizer to use.
-        loss_fn (Callable[[jnp.ndarray, Dict[str, jnp.ndarray], jax.random.PRNGKey], Tuple[float, jax.random.PRNGKey]]): A function to
-        compute the loss given the model parameters, batch, and RNG key.
+        loss_fn (Callable[[jnp.ndarray, Callable, Dict[str, jnp.ndarray], jax.random.PRNGKey], float]): A function to
+        compute the loss given the model parameters, apply function, batch, and RNG key.
         hidden_size (int): The hidden size of the model.
         sequence_length (int): The sequence length for the input.
         rng (jax.random.PRNGKey): The random number generator key.
