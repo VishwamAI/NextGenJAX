@@ -107,7 +107,7 @@ def train_step(
     loss, grads = grad_fn(state.params)
     print(f"train_step: grads type: {type(grads)}")
     state = state.apply_gradients(grads=grads)
-    metrics = {"loss": loss}
+    metrics = {"loss": float(loss)}  # Convert loss to float
     return state, metrics, rng
 
 
@@ -177,7 +177,7 @@ def train_model(
             rng, step_rng = jax.random.split(rng)
             state, metrics, rng = train_step(state, batch, debug_loss_fn, step_rng)
             epoch_loss.append(metrics["loss"])
-        avg_loss = jnp.mean(jnp.array(epoch_loss))
+        avg_loss = float(jnp.mean(jnp.array(epoch_loss)))  # Convert to float
         metrics_history.append({"loss": avg_loss})
         print(f"Epoch {epoch + 1}, Loss: {avg_loss}")
 
