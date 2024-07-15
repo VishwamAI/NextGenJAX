@@ -1,6 +1,6 @@
 import jax.numpy as jnp
 import pytest
-from src.optimizers import sgd, adam, rmsprop, custom_optimizer
+from nextgenjax.optimizers import sgd, adam, rmsprop, CustomOptimizer
 
 
 def test_sgd():
@@ -31,7 +31,7 @@ def test_rmsprop():
 
 
 def test_custom_optimizer():
-    init_fn, update_fn = custom_optimizer(learning_rate=0.01)
+    init_fn, update_fn = CustomOptimizer(learning_rate=0.01)
     params = {"w": jnp.array([1.0, 2.0, 3.0])}
     grads = {"w": jnp.array([0.1, 0.2, 0.3])}
     state = init_fn(params)

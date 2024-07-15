@@ -1,3 +1,23 @@
+Metadata-Version: 2.1
+Name: nextgenjax
+Version: 0.1.0
+Summary: A JAX-based neural network library surpassing Google DeepMind's Haiku and Optax
+Home-page: https://github.com/VishwamAI/NextGenJAX
+Author: kasinadhsarma
+Author-email: kasinadhsarma@gmail.com
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Provides-Extra: dev
+License-File: LICENSE
+
 # NextGenJAX
 
 ## Overview
@@ -83,3 +103,4 @@ NextGenJAX is licensed under the MIT License. See the [LICENSE](LICENSE) file fo
 NextGenJAX is inspired by the work of Google DeepMind and the JAX and Flax communities. We thank them for their contributions to the field of machine learning.
 
 Last updated: 2023-05-10 12:00:00 UTC
+

@@ -1,10 +1,9 @@
 import jax
 import jax.numpy as jnp
 import pytest
-from src.layers import DenseLayer, ConvolutionalLayer
-from src.custom_layers import CustomLayer
+from nextgenjax.layers import DenseLayer, ConvolutionalLayer
+from nextgenjax.custom_layers import CustomLayer
 import jax.nn as nn
-
 
 @pytest.mark.parametrize(
     "features, input_shape, activation",
