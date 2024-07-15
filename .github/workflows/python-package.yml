@@ -104,13 +104,7 @@ jobs:
         echo "::endgroup::"
       timeout-minutes: 10
 
-    - name: Run integration tests
-      run: |
-        echo "::group::Run integration tests"
-        set -x
-        pytest tests/integration -v
-        echo "::endgroup::"
-      timeout-minutes: 15
+# Integration tests step removed as the 'tests/integration' directory does not exist
 
     - name: Run other tests
       run: |
