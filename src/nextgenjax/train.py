@@ -87,20 +87,25 @@ def train_step(
         Tuple[train_state.TrainState, Dict[str, float], jax.random.PRNGKey]:
         The updated training state, metrics, and new RNG key.
     """
+    print("train_step: Input types:")
+    print(f"  state: {type(state)}")
+    print(f"  batch: {type(batch)}")
+    print(f"  loss_fn: {type(loss_fn)}")
+    print(f"  rng: {type(rng)}")
 
     def loss_and_grad(params):
-        jax.debug.print("Params type: {}", type(params))
-        jax.debug.print("State apply_fn type: {}", type(state.apply_fn))
-        jax.debug.print("Batch type: {}", type(batch))
-        jax.debug.print("RNG type: {}", type(rng))
+        print(f"loss_and_grad: params type: {type(params)}")
+        print(f"loss_and_grad: state.apply_fn type: {type(state.apply_fn)}")
+        print(f"loss_and_grad: batch type: {type(batch)}")
+        print(f"loss_and_grad: rng type: {type(rng)}")
         loss = loss_fn(params, state.apply_fn, batch, rng)
-        jax.debug.print("Loss type: {}", type(loss))
-        jax.debug.print("Loss value: {}", loss)
+        print(f"loss_and_grad: loss type: {type(loss)}")
+        print(f"loss_and_grad: loss value: {loss}")
         return loss
 
     grad_fn = jax.value_and_grad(loss_and_grad)
     loss, grads = grad_fn(state.params)
-    jax.debug.print("Grads type: {}", type(grads))
+    print(f"train_step: grads type: {type(grads)}")
     state = state.apply_gradients(grads=grads)
     metrics = {"loss": loss}
     return state, metrics, rng
@@ -134,6 +139,16 @@ def train_model(
         Tuple[train_state.TrainState, Dict[str, float]]: The final training
         state and metrics.
     """
+    print("train_model: Input types:")
+    print(f"  model_params: {type(model_params)}")
+    print(f"  train_dataset: {type(train_dataset)}")
+    print(f"  num_epochs: {type(num_epochs)}")
+    print(f"  optimizer: {type(optimizer)}")
+    print(f"  loss_fn: {type(loss_fn)}")
+    print(f"  hidden_size: {type(hidden_size)}")
+    print(f"  sequence_length: {type(sequence_length)}")
+    print(f"  rng: {type(rng)}")
+
     def data_loader(dataset):
         for batch in dataset:
             yield batch
