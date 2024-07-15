@@ -67,7 +67,6 @@ def create_train_state(
         tx=optimizer,
     )
 
-@jax.jit
 def train_step(
     state: train_state.TrainState,
     batch: Dict[str, jnp.ndarray],
