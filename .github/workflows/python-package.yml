@@ -192,6 +192,8 @@ jobs:
         echo $PYTHONPATH
         echo "::endgroup::"
     - name: Run unit tests
+      env:
+        JAX_TRACEBACK_FILTERING: 'off'
       run: |
         echo "::group::Run unit tests"
         set -x
