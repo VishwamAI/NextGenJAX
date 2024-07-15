@@ -24,7 +24,6 @@ def create_model(num_layers, hidden_size, num_heads, dropout_rate):
         return model(x, train)
     return hk.transform(_model)
 
-@jax.jit
 def loss_fn(params, apply_fn, batch, rng):
     logger.debug("Calculating loss")
     rng, dropout_rng = jax.random.split(rng)
