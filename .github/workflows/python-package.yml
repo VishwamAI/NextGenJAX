@@ -51,6 +51,10 @@ jobs:
         pip install torch --index-url https://download.pytorch.org/whl/cpu
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         if [ -f test_requirements.txt ]; then pip install -r test_requirements.txt; fi
+        pip install jax==0.4.30 jaxlib==0.4.30
+        pip install optax==0.2.3
+        pip install dm-haiku==0.0.11
+        echo "PYTHONPATH=$PYTHONPATH:$(pwd)" >> $GITHUB_ENV
         echo "::endgroup::"
       timeout-minutes: 30
     - name: Install nextgenjax
@@ -60,121 +64,20 @@ jobs:
         pip install -e .
         echo "nextgenjax installation completed"
         echo "::endgroup::"
-    - name: Print site-packages contents
+    - name: Debug information
       run: |
-        echo "::group::Print site-packages contents"
-        set -x
-        python -c "import site; print(site.getsitepackages())"
-        ls -R $(python -c "import site; print(site.getsitepackages()[0])")
-        echo "::endgroup::"
-    - name: Print src/nextgenjax/__init__.py contents
-      run: |
-        echo "::group::Print src/nextgenjax/__init__.py contents"
-        set -x
-        echo "Contents of src/nextgenjax/__init__.py:"
-        cat src/nextgenjax/__init__.py
-        echo "::endgroup::"
-    - name: List contents of src directory
-      run: |
-        echo "::group::List contents of src directory"
-        set -x
-        echo "Contents of src directory:"
-        ls -R src
-        echo "::endgroup::"
-    - name: List installed packages
-      run: |
-        echo "::group::List installed packages"
-        set -x
-        pip list
-        pip show nextgenjax
-        echo "::endgroup::"
-    - name: Print nextgenjax.egg-info contents
-      run: |
-        echo "::group::Print nextgenjax.egg-info contents"
-        set -x
-        echo "Contents of nextgenjax.egg-info:"
-        ls -R src/nextgenjax.egg-info
-        echo "::endgroup::"
-    - name: Print installation info
-      run: |
-        echo "::group::Print installation info"
-        set -x
-        echo "Installation directory:"
-        pip show nextgenjax
-        echo "Python path:"
-        python -c "import sys; print('\n'.join(sys.path))"
-        echo "::endgroup::"
-    - name: Print sys.path
-      run: |
-        echo "::group::Print sys.path"
-        set -x
-        python -c "import sys; print('sys.path:', sys.path)"
-        echo "::endgroup::"
-    - name: Set PYTHONPATH
-      run: |
-        echo "::group::Set PYTHONPATH"
-        set -x
-        echo "PYTHONPATH=${{ github.workspace }}/src:${{ github.workspace }}/src/nextgenjax" >> $GITHUB_ENV
-        echo "::endgroup::"
-    - name: Debug Python environment
-      run: |
-        echo "::group::Debug Python environment"
-        set -x
-        echo "Current working directory: $(pwd)"
-        echo "Contents of current directory:"
-        ls -R
-        echo "PYTHONPATH: $PYTHONPATH"
-        echo "Python sys.path:"
-        python -c "import sys; print('\n'.join(sys.path))"
-        echo "Installed packages:"
-        pip list
-        echo "::endgroup::"
-    - name: Debug - List installed packages
-      run: |
-        echo "::group::Debug - List installed packages"
-        set -x
-        echo "PYTHONPATH: $PYTHONPATH"
-        pip list
-        pip list --path src
+        echo "::group::Debug information"
         python -c "import sys; print(sys.path)"
+        pip list
+        pip show nextgenjax
         echo "::endgroup::"
-    - name: Confirm working directory and PYTHONPATH
-      run: |
-        echo "::group::Confirm working directory and PYTHONPATH"
-        set -x
-        cd ${{ github.workspace }}
-        echo "Current working directory: $(pwd)"
-        echo "Contents of src directory:"
-        ls -R src
-        echo "PYTHONPATH: $PYTHONPATH"
-        echo "::endgroup::"
-    - name: Debug - List src directory contents
-      run: |
-        echo "::group::Debug - List src directory contents"
-        echo "Contents of src directory:"
-        ls -R src/
-        echo "::endgroup::"
-    - name: Debug - Print PYTHONPATH
-      run: |
-        echo "::group::Debug - Print PYTHONPATH"
-        echo "PYTHONPATH: $PYTHONPATH"
-        echo "::endgroup::"
-    - name: Debug - Print Python sys.path
-      run: |
-        echo "::group::Debug - Print Python sys.path"
-        python -c "import sys; print('sys.path:', sys.path)"
-        echo "::endgroup::"
+# This section has been intentionally left blank as per the instructions to remove redundant debugging steps.
+
     - name: Test nextgenjax import
       run: |
         echo "::group::Test nextgenjax import"
         set -x
         python -c "import nextgenjax; print(f'nextgenjax imported successfully from {nextgenjax.__file__}')"
-        echo "::endgroup::"
-    - name: List installed packages
-      run: |
-        echo "::group::List installed packages"
-        set -x
-        pip list
         echo "::endgroup::"
     - name: Lint with flake8
       run: |
@@ -184,12 +87,6 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-        echo "::endgroup::"
-    - name: Print PYTHONPATH
-      run: |
-        echo "::group::Print PYTHONPATH"
-        set -x
-        echo $PYTHONPATH
         echo "::endgroup::"
     - name: Run unit tests
       env:
