@@ -14,6 +14,12 @@ print("Executing test_training.py")
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+def loss_fn(params, apply_fn, batch, rng):
+    _, dropout_rng = jax.random.split(rng)
+    logits = apply_fn(params, dropout_rng, batch['image'], train=True)
+    predicted = jnp.mean(logits, axis=-1, keepdims=True)
+    return jnp.mean((predicted - batch['label']) ** 2)
+
 def find_layer_norm_scale(params):
     found = []
     def find_scale(path, value):
@@ -98,16 +104,8 @@ def test_train_step():
 
         @jax.jit
         def train_step(state, batch, rng):
-            def loss_fn(params):
-                _, dropout_rng = jax.random.split(rng)
-                logits = state.apply_fn(params, dropout_rng, batch['image'], train=True)
-                # Assuming the model output needs to be reduced to match label shape
-                predicted = jnp.mean(logits, axis=-1, keepdims=True)
-                loss = jnp.mean((predicted - batch['label']) ** 2)
-                return loss, logits
-
-            grad_fn = jax.value_and_grad(loss_fn, has_aux=True)
-            (loss, _), grads = grad_fn(state.params)
+            grad_fn = jax.value_and_grad(lambda p: loss_fn(p, state.apply_fn, batch, rng), has_aux=False)
+            loss, grads = grad_fn(state.params)
             state = state.apply_gradients(grads=grads)
             return state, {'loss': loss}
 
@@ -157,10 +155,7 @@ def test_train_model():
         # Add assertion to catch shape mismatches
         assert dataset[0]["image"].shape == (1, sequence_length, hidden_size), f"Expected shape (1, {sequence_length}, {hidden_size}), got {dataset[0]['image'].shape}"
 
-        def loss_fn(params, batch, rng):
-            logits = model.apply(params, rng, batch['image'], train=True)
-            predicted = jnp.mean(logits, axis=-1, keepdims=True)
-            return jnp.mean((predicted - batch['label']) ** 2)
+
 
         logger.debug("Loss function defined")
 

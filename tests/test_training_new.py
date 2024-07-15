@@ -1,3 +1,4 @@
+import jax
 import jax.numpy as jnp
 import haiku as hk
 from jax import random
@@ -16,6 +17,11 @@ def create_model(num_layers, hidden_size, num_heads, dropout_rate):
         model = NextGenModel(num_layers, hidden_size, num_heads, dropout_rate)
         return model(x, train)
     return hk.transform(_model)
+
+def loss_fn(params, apply_fn, batch, rng):
+    logits = apply_fn(params, rng, batch['image'], train=True)
+    predicted = jnp.mean(logits, axis=-1, keepdims=True)
+    return jnp.mean((predicted - batch['label']) ** 2)
 
 def test_create_train_state():
     model = create_model(num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1)
@@ -51,11 +57,7 @@ def test_train_step():
     print("Initial model parameter shapes:")
     tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
 
-    def loss_fn(params, batch, rng):
-        logits = state.apply_fn(params, rng, batch['image'], train=True)
-        # Assuming the model output needs to be reduced to match label shape
-        predicted = jnp.mean(logits, axis=-1, keepdims=True)
-        return jnp.mean((predicted - batch['label']) ** 2)
+
 
     rng, subkey = random.split(rng)
     new_state, metrics = train_step(state, batch, subkey, loss_fn, lambda x: {})
@@ -80,11 +82,7 @@ def test_train_model():
     # Add assertion to catch shape mismatches
     assert batch['image'].shape == (batch_size, sequence_length, hidden_size), f"Expected shape ({batch_size}, {sequence_length}, {hidden_size}), got {batch['image'].shape}"
 
-    def loss_fn(params, batch, rng):
-        logits = model.apply(params, rng, batch['image'], train=True)
-        # Assuming the model output needs to be reduced to match label shape
-        predicted = jnp.mean(logits, axis=-1, keepdims=True)
-        return jnp.mean((predicted - batch['label']) ** 2)
+
 
     num_epochs = 2
 
