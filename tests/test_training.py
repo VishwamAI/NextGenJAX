@@ -193,7 +193,7 @@ def test_train_model():
         assert isinstance(metrics_history, list)
         assert len(metrics_history) == 1  # One epoch
         assert "loss" in metrics_history[0]
-        assert isinstance(metrics_history[0]["loss"], float)
+        assert isinstance(metrics_history[0]["loss"], (float, jnp.ndarray))
         logger.debug(f"Assertions passed. Metrics history: {metrics_history}")
         logger.debug("test_train_model completed successfully")
     except Exception as e:

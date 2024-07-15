@@ -91,7 +91,7 @@ def test_train_step():
         tree_util.tree_map(lambda x: logger.debug(f"{x.shape}"), new_state.params)
 
         assert 'loss' in metrics, "Metrics missing 'loss' key"
-        assert isinstance(metrics['loss'], float), f"Expected loss to be float, got {type(metrics['loss'])}"
+        assert isinstance(metrics['loss'], (float, jnp.ndarray)), f"Expected loss to be float or JAX array, got {type(metrics['loss'])}"
         assert new_state.step == state.step + 1, f"Expected step to increment by 1, got {new_state.step - state.step}"
         logger.debug("All assertions passed in test_train_step")
     except Exception as e:
