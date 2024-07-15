@@ -107,12 +107,12 @@ def test_train_step():
         else:
             logger.debug("Layer norm scale not found in params")
 
-        def train_step(state, batch, rng, loss_fn, get_metrics):
-            grad_fn = jax.value_and_grad(lambda p: loss_fn(p, state.apply_fn, batch, rng), has_aux=True)
-            (loss, new_rng), grads = grad_fn(state.params)
+        def train_step(state, batch, rng):
+            grad_fn = jax.value_and_grad(lambda p: loss_fn(p, state.apply_fn, batch, rng))
+            loss, grads = grad_fn(state.params)
             state = state.apply_gradients(grads=grads)
-            metrics = get_metrics(loss)
-            return state, metrics, new_rng
+            metrics = {'loss': loss}
+            return state, metrics, rng
 
         logger.debug("train_step function defined")
 
@@ -126,7 +126,7 @@ def test_train_step():
             return {'loss': loss}
 
         rng, step_rng = jax.random.split(rng)
-        new_state, metrics, new_rng = train_step(state, batch, step_rng, loss_fn, get_metrics)
+        new_state, metrics, new_rng = train_step(state, batch, step_rng)
         logger.debug(f"train_step executed. Loss: {metrics['loss']}")
 
         logger.debug("Updated model parameter shapes:")
