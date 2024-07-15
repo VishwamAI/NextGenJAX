@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="nextgenjax",
-    version="0.1.1",
+    version="0.1.2",
     author="kasinadhsarma",
     author_email="kasinadhsarma@gmail.com",
     description="A JAX-based neural network library surpassing Google DeepMind's Haiku and Optax",
