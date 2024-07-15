@@ -97,7 +97,7 @@ def train_model(
     train_dataset: Any,
     num_epochs: int,
     optimizer: OptimizerType,
-    loss_fn: Callable[[jnp.ndarray, jnp.ndarray], float],
+    loss_fn: Callable[[jnp.ndarray, Dict[str, jnp.ndarray], jax.random.PRNGKey], Tuple[float, jax.random.PRNGKey]],
     hidden_size: int,
     sequence_length: int,
     rng: jax.random.PRNGKey,
@@ -110,8 +110,8 @@ def train_model(
         train_dataset (Any): The training dataset.
         num_epochs (int): The number of epochs to train for.
         optimizer (OptimizerType): The optimizer to use.
-        loss_fn (Callable[[jnp.ndarray, jnp.ndarray], float]): A function to
-        compute the loss given the model's predictions and the true labels.
+        loss_fn (Callable[[jnp.ndarray, Dict[str, jnp.ndarray], jax.random.PRNGKey], Tuple[float, jax.random.PRNGKey]]): A function to
+        compute the loss given the model parameters, batch, and RNG key.
         hidden_size (int): The hidden size of the model.
         sequence_length (int): The sequence length for the input.
         rng (jax.random.PRNGKey): The random number generator key.
