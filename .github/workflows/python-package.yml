@@ -24,15 +24,19 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest
-        pip install tensorflow
-        pip install torch
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Verify TensorFlow installation
+    - name: Install TensorFlow
       run: |
-        python -c "import tensorflow as tf; print(tf.__version__)"
-    - name: Verify PyTorch installation
+        pip install tensorflow
+    - name: Install PyTorch
       run: |
-        python -c "import torch; print(torch.__version__)"
+        pip install torch torchvision torchaudio
+    - name: Install transformers
+      run: |
+        pip install transformers
+    - name: Verify library installations
+      run: |
+        python -c "import tensorflow as tf; import torch; from transformers import AutoModel; print('TensorFlow version:', tf.__version__); print('PyTorch version:', torch.__version__); print('Transformers version:', transformers.__version__)"
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
