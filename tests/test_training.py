@@ -14,12 +14,13 @@ print("Executing test_training.py")
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+@jax.jit
 def loss_fn(params, apply_fn, batch, rng):
     rng, dropout_rng = jax.random.split(rng)
     logits = apply_fn(params, dropout_rng, batch['image'], train=True)
     predicted = jnp.mean(logits, axis=-1, keepdims=True)
     loss = jnp.mean((predicted - batch['label']) ** 2)
-    return loss, rng
+    return loss
 
 def find_layer_norm_scale(params):
     found = []
