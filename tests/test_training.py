@@ -51,56 +51,59 @@ def test_create_train_state():
     logger.debug("Starting test_create_train_state")
     try:
         model = create_model(num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1)
-        logger.debug("Model created successfully")
+        logger.debug(f"Model created successfully: {model}")
 
         rng = jax.random.PRNGKey(0)
         rng, init_rng = jax.random.split(rng)
         dummy_input = jnp.ones((1, sequence_length, hidden_size))
+        logger.debug(f"Dummy input shape: {dummy_input.shape}")
         optimizer = optax.adam(1e-3)
-        logger.debug("Optimizer created")
+        logger.debug(f"Optimizer created: {optimizer}")
 
         params = model.init(init_rng, dummy_input)
+        logger.debug(f"Initial params structure: {jax.tree_util.tree_structure(params)}")
         state = create_train_state(init_rng, model, optimizer, hidden_size)
-        logger.debug("TrainState created")
+        logger.debug(f"TrainState created: {state}")
 
-        print("Model parameter shapes:")
-        jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
+        logger.debug("Model parameter shapes:")
+        jax.tree_util.tree_map(lambda x: logger.debug(f"{x.shape}"), state.params)
 
         # Specifically check the shape of layer_norm scale
         layer_norm_scale = find_layer_norm_scale(state.params)
         if layer_norm_scale is not None:
-            print(f"Layer norm scale shape: {layer_norm_scale.shape}")
+            logger.debug(f"Layer norm scale shape: {layer_norm_scale.shape}")
         else:
-            print("Layer norm scale not found in params")
+            logger.debug("Layer norm scale not found in params")
 
         assert isinstance(state, train_state.TrainState)
+        logger.debug(f"TrainState attributes: {', '.join(dir(state))}")
         logger.debug("test_create_train_state completed successfully")
     except Exception as e:
-        logger.error(f"Error in test_create_train_state: {str(e)}")
+        logger.exception(f"Error in test_create_train_state: {str(e)}")
         raise
 
 def test_train_step():
     logger.debug("Starting test_train_step")
     try:
         model = create_model(num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1)
-        logger.debug("Model created")
+        logger.debug(f"Model created with hidden_size={hidden_size}")
 
         rng = jax.random.PRNGKey(0)
         optimizer = optax.adam(1e-3)
-        logger.debug("Optimizer created")
+        logger.debug("Optimizer created with learning rate 1e-3")
 
         params = model.init(rng, jnp.ones((1, sequence_length, hidden_size)))
         state = create_train_state(rng, model, optimizer, hidden_size, sequence_length)
-        logger.debug("TrainState created")
+        logger.debug(f"TrainState created with sequence_length={sequence_length}")
 
-        print("Initial model parameter shapes:")
-        jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
-        print("Layer norm scale shape:")
+        logger.debug("Initial model parameter shapes:")
+        jax.tree_util.tree_map(lambda x: logger.debug(f"{x.shape}"), state.params)
+
         layer_norm_scale = find_layer_norm_scale(state.params)
         if layer_norm_scale is not None:
-            print(f"Layer norm scale shape: {layer_norm_scale.shape}")
+            logger.debug(f"Layer norm scale shape: {layer_norm_scale.shape}")
         else:
-            print("Layer norm scale not found in params")
+            logger.debug("Layer norm scale not found in params")
 
         @jax.jit
         def train_step(state, batch, rng):
@@ -109,53 +112,52 @@ def test_train_step():
             state = state.apply_gradients(grads=grads)
             return state, {'loss': loss}
 
-        logger.debug("train_step function defined")
+        logger.debug("train_step function defined and jitted")
 
         batch = {
             'image': jnp.ones((batch_size, sequence_length, hidden_size)),
             'label': jnp.ones((batch_size, 1))
         }
-        logger.debug("Batch created")
+        logger.debug(f"Batch created with shape: image={batch['image'].shape}, label={batch['label'].shape}")
 
         rng, step_rng = jax.random.split(rng)
         new_state, metrics = train_step(state, batch, step_rng)
         logger.debug(f"train_step executed. Loss: {metrics['loss']}")
 
-        print("Updated model parameter shapes:")
-        jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), new_state.params)
-        print("Layer norm scale shape:")
+        logger.debug("Updated model parameter shapes:")
+        jax.tree_util.tree_map(lambda x: logger.debug(f"{x.shape}"), new_state.params)
+
         layer_norm_scale = find_layer_norm_scale(new_state.params)
         if layer_norm_scale is not None:
-            print(f"Layer norm scale shape: {layer_norm_scale.shape}")
+            logger.debug(f"Updated layer norm scale shape: {layer_norm_scale.shape}")
         else:
-            print("Layer norm scale not found in params")
+            logger.debug("Layer norm scale not found in updated params")
 
         assert isinstance(new_state, train_state.TrainState)
         assert isinstance(metrics['loss'], jnp.ndarray)
         logger.debug("test_train_step completed successfully")
     except Exception as e:
-        logger.error(f"Error in test_train_step: {str(e)}")
+        logger.exception(f"Error in test_train_step: {str(e)}")
         raise
 
 def test_train_model():
     logger.debug("Starting test_train_model")
     try:
         model = create_model(num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1)
-        logger.debug("Model created")
+        logger.debug(f"Model created with num_layers=2, hidden_size={hidden_size}, num_heads=4, dropout_rate=0.1")
 
         optimizer = optax.adam(1e-3)
-        logger.debug("Optimizer created")
+        logger.debug("Optimizer created: Adam with learning rate 1e-3")
 
         dataset = [
             {"image": jnp.ones((1, sequence_length, hidden_size)), "label": jnp.zeros((1, 1), dtype=jnp.float32)}
             for _ in range(10)
         ]
-        logger.debug("Dataset created")
+        logger.debug(f"Dataset created with {len(dataset)} samples")
 
         # Add assertion to catch shape mismatches
         assert dataset[0]["image"].shape == (1, sequence_length, hidden_size), f"Expected shape (1, {sequence_length}, {hidden_size}), got {dataset[0]['image'].shape}"
-
-
+        logger.debug(f"Dataset shape assertion passed: image shape is {dataset[0]['image'].shape}")
 
         logger.debug("Loss function defined")
 
@@ -165,8 +167,8 @@ def test_train_model():
         params = model.init(init_rng, dummy_input)
         state = create_train_state(init_rng, model, optimizer, hidden_size, sequence_length)
         logger.debug("Initial TrainState created")
-        print("Initial model parameter shapes:")
-        jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), state.params)
+        logger.debug("Initial model parameter shapes:")
+        jax.tree_util.tree_map(lambda x: logger.debug(f"{x.shape}"), state.params)
 
         final_state, metrics_history = train_model(
             model_params=(2, 4, 0.1),  # num_layers, num_heads, dropout_rate
@@ -180,17 +182,19 @@ def test_train_model():
         )
         logger.debug(f"train_model executed. Final loss: {metrics_history[-1]['loss']}")
 
-        print("Final model parameter shapes:")
-        jax.tree_util.tree_map(lambda x: print(f"{x.shape}"), final_state.params)
+        logger.debug("Final model parameter shapes:")
+        jax.tree_util.tree_map(lambda x: logger.debug(f"{x.shape}"), final_state.params)
 
         assert isinstance(final_state, train_state.TrainState)
         assert isinstance(metrics_history, list)
         assert len(metrics_history) == 1  # One epoch
         assert "loss" in metrics_history[0]
         assert isinstance(metrics_history[0]["loss"], float)
+        logger.debug(f"Assertions passed. Metrics history: {metrics_history}")
         logger.debug("test_train_model completed successfully")
     except Exception as e:
         logger.error(f"Error in test_train_model: {str(e)}")
+        logger.exception("Detailed traceback:")
         raise
 
 if __name__ == "__main__":
