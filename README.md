@@ -73,6 +73,13 @@ To set up a development environment:
 
 We use GitHub Actions for continuous integration and deployment. Our CI/CD workflow runs tests on Python 3.9 to ensure compatibility and code quality.
 
+## Community and Support
+
+We welcome community engagement and support for the NextGenJAX project:
+
+- **Discussions**: Join our community discussions at [NextGenJAX Discussions](https://github.com/VishwamAI/NextGenJAX/discussions)
+- **Contact**: For additional support or inquiries, you can reach us at [aivishwam@gmail.com](mailto:aivishwam@gmail.com)
+
 ## Contributing
 We welcome contributions to NextGenJAX! Please follow these steps:
 
@@ -105,8 +112,8 @@ NextGenJAX is inspired by the work of Google DeepMind and the JAX and Flax commu
 ## Contact Information
 For support or questions about NextGenJAX, please reach out to:
 
-- Email: support@nextgenjax.com
-- GitHub Issues: [https://github.com/VishwamAI/NextGenJAX/issues](https://github.com/VishwamAI/NextGenJAX/issues)
-- Community Forum: [https://community.nextgenjax.com](https://community.nextgenjax.com)
+- Email: [aivishwam@gmail.com](mailto:aivishwam@gmail.com)
+- GitHub Issues: [NextGenJAX Issues](https://github.com/VishwamAI/NextGenJAX/issues)
+- Community Forum: [NextGenJAX Discussions](https://github.com/VishwamAI/NextGenJAX/discussions)
 
 Last updated: 2023-05-10 12:00:00 UTC
