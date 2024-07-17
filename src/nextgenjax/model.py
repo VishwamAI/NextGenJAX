@@ -36,6 +36,19 @@ class NextGenModel(hk.Module):
         return x
 
     def encoder_layer(self, x, train: bool):
+        # Store the original input shape
+        original_shape = x.shape
+
+        # Project input to match hidden size
+        # This ensures that x has the correct number of channels (self.hidden_size)
+        x = hk.Linear(output_size=self.hidden_size)(x)
+
+        # Reshape x to 3D if it's 4D (image-like input)
+        is_4d = len(original_shape) == 4
+        if is_4d:
+            batch, height, width, channels = x.shape
+            x = x.reshape(batch, height * width, channels)
+
         # Self-attention
         residual = x
         x = hk.LayerNorm(axis=-1, create_scale=True, create_offset=True, param_axis=(), scale_init=hk.initializers.Constant(1.0))(x)
@@ -51,6 +64,8 @@ class NextGenModel(hk.Module):
             )(x, x, x)
 
         x = hk.dropout(hk.next_rng_key(), self.dropout_rate, x) if train else x
+
+        # Residual connection (shapes are guaranteed to match due to initial projection)
         x = x + residual
 
         # Feed-forward
@@ -60,7 +75,21 @@ class NextGenModel(hk.Module):
         x = jax.nn.gelu(x)
         x = hk.Linear(output_size=self.hidden_size)(x)
         x = hk.dropout(hk.next_rng_key(), self.dropout_rate, x) if train else x
+
+        # Residual connection (shapes are guaranteed to match)
         x = x + residual
+
+        # Reshape back to original shape if it was 4D
+        if is_4d:
+            x = x.reshape(original_shape[0], original_shape[1], original_shape[2], -1)
+
+        # Ensure final output matches original shape
+        # This step is crucial to maintain compatibility with the rest of the network
+        if x.shape != original_shape:
+            x = hk.Linear(output_size=original_shape[-1])(x)
+
+        # Final shape check
+        assert x.shape == original_shape, f"Output shape {x.shape} does not match input shape {original_shape}"
 
         return x
 
