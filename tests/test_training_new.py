@@ -1,12 +1,45 @@
+import os
+import sys
+
+# Set the PYTHONPATH to include the directory containing deepmind_lab
+lab_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'lab')
+site_packages_dir = os.path.join(lab_dir, 'env', 'lib', 'python3.10', 'site-packages')
+sys.path.insert(0, site_packages_dir)
+os.environ['PYTHONPATH'] = f"{site_packages_dir}:{os.environ.get('PYTHONPATH', '')}"
+
+print(f"Updated PYTHONPATH: {os.environ['PYTHONPATH']}")
+print(f"Updated sys.path: {sys.path}")
+
 import jax
 import jax.numpy as jnp
-import haiku as hk
 from jax import random
 import optax
 import jax.tree_util as tree_util
-from nextgenjax.model import NextGenModel
-from nextgenjax.train import create_train_state, train_step, train_model
+from flax import linen as nn
+from flax.training import train_state
+from src.nextgenjax.model import NextGenModel
+from src.nextgenjax.train import create_train_state, train_step, train_model
 import logging
+
+# Attempt to import deepmind_lab
+try:
+    import deepmind_lab
+    print(f"Successfully imported deepmind_lab from {deepmind_lab.__file__}")
+except ImportError as e:
+    print(f"Failed to import deepmind_lab: {str(e)}")
+
+print("Current PYTHONPATH:")
+print(sys.path)
+
+print("\nDirectory containing 'deepmind_lab' module:")
+try:
+    import deepmind_lab
+    print(os.path.dirname(deepmind_lab.__file__))
+except ImportError:
+    print("Unable to import deepmind_lab")
+
+print("\nContents of /home/ubuntu/NextGenJAX/lab/env/lib/python3.10/site-packages:")
+print(os.listdir("/home/ubuntu/NextGenJAX/lab/env/lib/python3.10/site-packages"))
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -17,17 +50,12 @@ sequence_length = 32
 batch_size = 32
 hidden_size = 64
 
-def create_model(num_layers, hidden_size, num_heads, dropout_rate):
-    logger.debug(f"Creating model with {num_layers} layers, {hidden_size} hidden size, {num_heads} heads, and {dropout_rate} dropout rate")
-    def _model(x, train=False):
-        model = NextGenModel(num_layers, hidden_size, num_heads, dropout_rate)
-        return model(x, train)
-    return hk.transform(_model)
+
 
 def loss_fn(params, apply_fn, batch, rng):
     logger.debug("Calculating loss")
     rng, dropout_rng = jax.random.split(rng)
-    logits = apply_fn(params, dropout_rng, batch['image'], train=True)
+    logits = apply_fn({'params': params}, batch['image'])
     predicted = jnp.mean(logits, axis=-1, keepdims=True)
     loss = jnp.mean((predicted - batch['label']) ** 2)
     logger.debug(f"Calculated loss: {loss}")
@@ -36,16 +64,16 @@ def loss_fn(params, apply_fn, batch, rng):
 def test_create_train_state():
     logger.debug("Starting test_create_train_state")
     try:
-        model = create_model(num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1)
-        logger.debug("Model created successfully")
-        learning_rate = 0.001
         rng = random.PRNGKey(0)
         rng, init_rng = random.split(rng)
 
+        model = NextGenModel(num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1)
+        logger.debug("Model created successfully")
+
+        learning_rate = 0.001
         tx = optax.adam(learning_rate)
         logger.debug(f"Optimizer created with learning rate: {learning_rate}")
-        params = model.init(init_rng, jnp.ones((1, sequence_length, hidden_size)))
-        logger.debug(f"Model initialized with input shape: (1, {sequence_length}, {hidden_size})")
+
         state = create_train_state(init_rng, model, tx, hidden_size, sequence_length)
         logger.debug("Train state created")
 
@@ -63,10 +91,11 @@ def test_create_train_state():
 def test_train_step():
     logger.debug("Starting test_train_step")
     try:
-        model = create_model(num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1)
-        logger.debug("Model created successfully")
-        learning_rate = 0.001
         rng = random.PRNGKey(0)
+        rng, init_rng = random.split(rng)
+
+        model = NextGenModel(num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1)
+        logger.debug("Model created successfully")
 
         batch = {
             'image': jnp.ones((batch_size, sequence_length, hidden_size)),
@@ -74,17 +103,19 @@ def test_train_step():
         }
         logger.debug(f"Batch created with shapes: image {batch['image'].shape}, label {batch['label'].shape}")
 
+        learning_rate = 0.001
         tx = optax.adam(learning_rate)
         logger.debug(f"Optimizer created with learning rate: {learning_rate}")
-        params = model.init(rng, jnp.ones((1, sequence_length, hidden_size)))
-        state = create_train_state(rng, model, tx, hidden_size, sequence_length)
+
+        state = create_train_state(init_rng, model, tx, hidden_size, sequence_length)
         logger.debug("Initial train state created")
 
         logger.debug("Initial model parameter shapes:")
         tree_util.tree_map(lambda x: logger.debug(f"{x.shape}"), state.params)
 
         rng, subkey = random.split(rng)
-        new_state, metrics, _ = train_step(state, batch, loss_fn, subkey)
+        new_state, metrics, new_subkey = train_step(state, batch, loss_fn, subkey)
+        logger.debug(f"train_step returned: new_state (type: {type(new_state)}), metrics (type: {type(metrics)}), new_subkey (type: {type(new_subkey)})")
         logger.debug(f"Train step completed. Metrics: {metrics}")
 
         logger.debug("Updated model parameter shapes:")
@@ -101,10 +132,15 @@ def test_train_step():
 def test_train_model():
     logger.debug("Starting test_train_model")
     try:
-        model = create_model(num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1)
-        logger.debug("Model created successfully")
-        learning_rate = 0.001
         rng = random.PRNGKey(0)
+        rng, init_rng = random.split(rng)
+
+        model_params = (2, 4, 0.1)  # num_layers, num_heads, dropout_rate
+        logger.debug(f"Model parameters: {model_params}")
+
+        learning_rate = 0.001
+        optimizer = optax.adam(learning_rate)
+        logger.debug(f"Optimizer created with learning rate: {learning_rate}")
 
         batch = {
             'image': jnp.ones((batch_size, sequence_length, hidden_size)),
@@ -123,14 +159,14 @@ def test_train_model():
         logger.debug("Starting train_model function")
 
         final_state, metrics_history = train_model(
-            model_params=(2, 4, 0.1),  # num_layers, num_heads, dropout_rate
+            model_params=model_params,
             train_dataset=[batch],
             num_epochs=num_epochs,
-            optimizer=optax.adam(learning_rate),
+            optimizer=optimizer,
             loss_fn=loss_fn,
-            rng=train_rng,
             hidden_size=hidden_size,
-            sequence_length=sequence_length
+            sequence_length=sequence_length,
+            rng=train_rng
         )
         logger.debug("train_model function completed")
 
