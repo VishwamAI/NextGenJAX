@@ -69,6 +69,14 @@ jobs:
         mkdir -p /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/deepmind_lab/
         cp ./bazel-bin/python/deepmind_lab.so /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/deepmind_lab/
         pip install --no-deps /tmp/dmlab_pkg/deepmind_lab-*.whl
+    - name: Debug - List DeepMind Lab build directory
+      run: |
+        ls -R lab/bazel-bin/python/
+        echo "PKG_CONFIG_PATH: $PKG_CONFIG_PATH"
+    - name: Debug - Check Python site-packages
+      run: |
+        ls -R /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/
+        echo "PYTHONPATH: $PYTHONPATH"
     - name: Install dm_env
       run: |
         python -m pip install --upgrade pip
@@ -76,6 +84,10 @@ jobs:
     - name: Verify DeepMind Lab installation
       run: |
         python -c "import deepmind_lab; import dm_env; print(deepmind_lab.__file__); print(dm_env.__file__)"
+    - name: Debug - Check DeepMind Lab installation
+      run: |
+        python -c "import sys; print(sys.path)"
+        python -c "import deepmind_lab; print(deepmind_lab.__file__)"
     - name: Verify deepmind_lab.so file
       run: |
         ls -l /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/deepmind_lab/deepmind_lab.so
@@ -91,6 +103,11 @@ jobs:
     - name: Verify library installations
       run: |
         python -c "import tensorflow as tf; import torch; from transformers import AutoModel; import deepmind_lab; import dm_env; print('TensorFlow version:', tf.__version__); print('PyTorch version:', torch.__version__); print('Transformers version:', transformers.__version__); print('DeepMind Lab version:', deepmind_lab.__version__); print('dm_env version:', dm_env.__version__)"
+    - name: Debug - Final environment check
+      run: |
+        env
+        pip list
+        python -c "import site; print(site.getsitepackages())"
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
