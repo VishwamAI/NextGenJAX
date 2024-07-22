@@ -1,6 +1,3 @@
-import sys
-sys.path.append('/home/ubuntu/NextGenJAX/lab/env/lib/python3.10/site-packages')
-
 import jax
 import jax.numpy as jnp
 import jax.tree_util as tree_util
