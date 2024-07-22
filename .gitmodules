@@ -1,0 +1,6 @@
+[submodule "lab"]
+path = lab
+url = https://github.com/deepmind/lab.git
+[submodule "langchain"]
+path = langchain
+url = https://github.com/VishwamAI/langchain.git
