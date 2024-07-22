@@ -1,6 +1,12 @@
 # NextGenJAX
 [![Python package](https://github.com/VishwamAI/NextGenJAX/actions/workflows/ci.yml/badge.svg)](https://github.com/VishwamAI/NextGenJAX/actions/workflows/ci.yml)
 [![PyPI version](https://badge.fury.io/py/nextgenjax.svg)](https://badge.fury.io/py/nextgenjax)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/VishwamAI/NextGenJAX/blob/main/LICENSE)
+[![GitHub release](https://img.shields.io/github/release/VishwamAI/NextGenJAX.svg)](https://GitHub.com/VishwamAI/NextGenJAX/releases/)
+[![GitHub stars](https://img.shields.io/github/stars/VishwamAI/NextGenJAX.svg)](https://GitHub.com/VishwamAI/NextGenJAX/stargazers/)
+[![Dependencies](https://img.shields.io/librariesio/release/pypi/nextgenjax)](https://libraries.io/pypi/nextgenjax)
+[![GitHub issues](https://img.shields.io/github/issues/VishwamAI/NextGenJAX.svg)](https://GitHub.com/VishwamAI/NextGenJAX/issues/)
+
 
 ## Overview
 NextGenJAX is an advanced neural network library built on top of JAX, designed to surpass the capabilities of existing libraries such as Google DeepMind's Haiku and Optax. It leverages the flexibility and performance of JAX and Flax to provide a modular, high-performance, and easy-to-use framework for building and training neural networks.
