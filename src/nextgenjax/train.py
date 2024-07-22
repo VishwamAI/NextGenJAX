@@ -5,64 +5,51 @@ import jax.numpy as jnp
 import jax.tree_util
 import jax.debug
 from jax import value_and_grad
+from flax import linen as nn
 from flax.training import train_state
 from typing import Any, Callable, Dict, Tuple, Union
 from .model import NextGenModel
 import optax
-import haiku as hk
 
 # Type alias for optimizer
 OptimizerType = optax.GradientTransformation
 
 def create_model(num_layers, hidden_size, num_heads, dropout_rate):
-    def _model(x, train=False):
-        model = NextGenModel(num_layers, hidden_size, num_heads, dropout_rate)
-        return model(x, train)
-    return hk.transform(_model)
+    return NextGenModel(num_layers=num_layers, hidden_size=hidden_size, num_heads=num_heads, dropout_rate=dropout_rate)
 
 
 def create_train_state(
     rng: jax.random.PRNGKey,
-    model: Any,
+    model: nn.Module,
     optimizer: OptimizerType,
     hidden_size: int,
     sequence_length: int = 64,
 ) -> train_state.TrainState:
     """
-    Creates initial training state.
+    Creates initial training state for a Flax model.
 
     Args:
         rng (jax.random.PRNGKey): The random number generator key.
-        model (Any): The model to be trained (Haiku transformed or regular module).
+        model (nn.Module): The Flax model to be trained.
         optimizer (OptimizerType): The optimizer to use.
         hidden_size (int): The hidden size of the model.
         sequence_length (int): The sequence length for the dummy input. Default is 64.
 
     Returns:
         train_state.TrainState: The initial training state.
-
-    Raises:
-        TypeError: If the model is neither a Haiku transformed function nor a regular Haiku module.
     """
     dummy_input = jnp.ones([1, sequence_length, hidden_size])
+    params = model.init(rng, dummy_input, train=False)['params']
 
-    if isinstance(model, hk.Transformed):
-        params = model.init(rng, dummy_input)
-        apply_fn = lambda params, rng, *args, **kwargs: model.apply(params, rng, *args, **kwargs)
-    elif isinstance(model, hk.Module):
-        params = model.init(rng, dummy_input)["params"]
-        apply_fn = lambda params, rng, *args, **kwargs: model.apply({"params": params}, rng, *args, **kwargs)
-    else:
-        raise TypeError("Model must be either a Haiku transformed function or a regular Haiku module")
-
-    # Add print statement to check apply_fn output
-    print(f"apply_fn output type: {type(apply_fn(params, rng, dummy_input))}")
+    # Add print statement to check params
+    print(f"Params type: {type(params)}")
+    print(f"Params structure: {jax.tree_util.tree_structure(params)}")
 
     # Add print statement to check optimizer type
     print(f"Optimizer type: {type(optimizer)}")
 
     return train_state.TrainState.create(
-        apply_fn=apply_fn,
+        apply_fn=model.apply,
         params=params,
         tx=optimizer,
     )
