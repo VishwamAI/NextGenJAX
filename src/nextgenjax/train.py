@@ -4,13 +4,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from typing import Any, Callable, Dict, List, Tuple, Union
-from .model import NextGenModel
 
 # Type alias for optimizer
 OptimizerType = Union[tf.keras.optimizers.Optimizer, torch.optim.Optimizer]
 
-def create_model(framework, num_layers, hidden_size, num_heads, dropout_rate):
-    return NextGenModel(framework=framework, num_layers=num_layers, hidden_size=hidden_size, num_heads=num_heads, dropout_rate=dropout_rate)
+
 
 
 def create_train_state(
@@ -95,36 +93,27 @@ def train_step_pytorch(state, batch, loss_fn):
 # JAX-specific train_step function removed
 
 def train_model(
-    model_params: Tuple[int, int, float],
+    model: Union[tf.keras.Model, nn.Module],
     train_dataset: Any,
     num_epochs: int,
     optimizer: Union[tf.keras.optimizers.Optimizer, torch.optim.Optimizer],
     loss_fn: Callable,
-    hidden_size: int,
-    sequence_length: int,
     framework: str = 'tensorflow',
 ) -> Tuple[Union[Dict[str, Any], torch.nn.Module], List[Dict[str, float]]]:
     """
     Trains the model using either TensorFlow or PyTorch.
 
     Args:
-        model_params (Tuple[int, int, float]): Parameters for creating the model (num_layers, num_heads, dropout_rate).
+        model (Union[tf.keras.Model, nn.Module]): The model to be trained.
         train_dataset (Any): The training dataset.
         num_epochs (int): The number of epochs to train for.
         optimizer (Union[tf.keras.optimizers.Optimizer, torch.optim.Optimizer]): The optimizer to use.
         loss_fn (Callable): A function to compute the loss.
-        hidden_size (int): The hidden size of the model.
-        sequence_length (int): The sequence length for the input.
         framework (str): The framework to use ('tensorflow' or 'pytorch'). Default is 'tensorflow'.
 
     Returns:
         Tuple[Union[Dict[str, Any], torch.nn.Module], List[Dict[str, float]]]: The final model state and metrics history.
     """
-    if len(model_params) != 3:
-        raise ValueError("model_params must contain exactly 3 elements: num_layers, num_heads, and dropout_rate")
-
-    model = create_model(model_params[0], hidden_size, model_params[1], model_params[2], framework)
-
     if framework == 'tensorflow':
         return train_model_tensorflow(model, train_dataset, num_epochs, optimizer, loss_fn)
     elif framework == 'pytorch':

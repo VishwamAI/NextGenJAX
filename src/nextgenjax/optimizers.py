@@ -1,6 +1,6 @@
-import nextgenjax.numpy as jnp
-import nextgenjax.tree_util
-from nextgenjax import grad, jit, vmap
+import jax.numpy as jnp
+import jax.tree_util
+from jax import grad, jit, vmap
 from typing import Callable, Tuple, Dict
 
 
@@ -28,7 +28,7 @@ def sgd(
         return params
 
     def update(params: Dict, grads: Dict, state: Dict) -> Tuple[Dict, Dict]:
-        updated_params = nextgenjax.tree_util.tree_map(
+        updated_params = jax.tree_util.tree_map(
             lambda p, g: p - learning_rate * g, params, grads
         )
         return updated_params, state
@@ -67,8 +67,8 @@ def adam(
     """
 
     def init(params: Dict) -> Tuple[Dict, Dict]:
-        m = nextgenjax.tree_util.tree_map(jnp.zeros_like, params)
-        v = nextgenjax.tree_util.tree_map(jnp.zeros_like, params)
+        m = jax.tree_util.tree_map(jnp.zeros_like, params)
+        v = jax.tree_util.tree_map(jnp.zeros_like, params)
         return m, v
 
     def update(
@@ -81,8 +81,8 @@ def adam(
             return beta2 * v + (1 - beta2) * jnp.square(g)
 
         m, v = state
-        m = nextgenjax.tree_util.tree_map(update_m, m, grads)
-        v = nextgenjax.tree_util.tree_map(update_v, v, grads)
+        m = jax.tree_util.tree_map(update_m, m, grads)
+        v = jax.tree_util.tree_map(update_v, v, grads)
 
         def m_hat_func(m):
             return m / (1 - beta1)
@@ -90,9 +90,9 @@ def adam(
         def v_hat_func(v):
             return v / (1 - beta2)
 
-        m_hat = nextgenjax.tree_util.tree_map(m_hat_func, m)
-        v_hat = nextgenjax.tree_util.tree_map(v_hat_func, v)
-        params = nextgenjax.tree_util.tree_map(
+        m_hat = jax.tree_util.tree_map(m_hat_func, m)
+        v_hat = jax.tree_util.tree_map(v_hat_func, v)
+        params = jax.tree_util.tree_map(
             lambda p, m, v: p - learning_rate * m / (jnp.sqrt(v) + epsilon),
             params,
             m_hat,
@@ -127,16 +127,16 @@ def rmsprop(
     """
 
     def init(params: Dict) -> Dict:
-        avg_sq_grad = nextgenjax.tree_util.tree_map(jnp.zeros_like, params)
+        avg_sq_grad = jax.tree_util.tree_map(jnp.zeros_like, params)
         return avg_sq_grad
 
     def update(params: Dict, grads: Dict, state: Dict) -> Tuple[Dict, Dict]:
         avg_sq_grad = state
-        avg_sq_grad = nextgenjax.tree_util.tree_map(
+        avg_sq_grad = jax.tree_util.tree_map(
             lambda avg, g: decay * avg + (1 - decay) * jnp.square(g),
             avg_sq_grad, grads
         )
-        params = nextgenjax.tree_util.tree_map(
+        params = jax.tree_util.tree_map(
             lambda p, avg, g: p - learning_rate * g / (
                 jnp.sqrt(avg) + epsilon
             ),
@@ -174,7 +174,7 @@ def CustomOptimizer(
 
     def update(params: Dict, grads: Dict, state: Dict) -> Tuple[Dict, Dict]:
         # Example of a custom optimization algorithm
-        updated_params = nextgenjax.tree_util.tree_map(
+        updated_params = jax.tree_util.tree_map(
             lambda p, g: p - learning_rate * jnp.sin(g), params, grads
         )
         return updated_params, state
