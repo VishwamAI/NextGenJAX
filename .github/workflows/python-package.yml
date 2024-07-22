@@ -66,6 +66,9 @@ jobs:
         bazel build --verbose_failures -c opt //python/pip_package:build_pip_package
         ./bazel-bin/python/pip_package/build_pip_package /tmp/dmlab_pkg
         pip install /tmp/dmlab_pkg/deepmind_lab-*.whl
+    - name: Verify DeepMind Lab installation
+      run: |
+        python -c "import deepmind_lab; print(deepmind_lab.__file__)"
     - name: Install TensorFlow and PyTorch
       run: |
         pip install tensorflow torch torchvision torchaudio
