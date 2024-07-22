@@ -42,6 +42,14 @@ jobs:
           libjpeg-dev nasm zip libbz2-dev libffi-dev libssl-dev curl build-essential
     - name: Install gettext
       run: sudo apt-get install -y gettext
+    - name: Update PATH for gettext
+      run: |
+        echo "PATH=/usr/bin:$PATH" >> $GITHUB_ENV
+        echo "LD_LIBRARY_PATH=/usr/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+    - name: Verify gettext installation
+      run: |
+        which gettext
+        gettext --version
     - name: Clone and install DeepMind Lab
       run: |
         git clone https://github.com/deepmind/lab.git
