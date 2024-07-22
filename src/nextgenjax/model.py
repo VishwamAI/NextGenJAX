@@ -1,24 +1,42 @@
-import haiku as hk
 import jax
 import jax.numpy as jnp
 import optax
 from jax.experimental import enable_x64
 from jax.experimental.pjit import pjit
 from jax.experimental import checkify
+from fairscale.nn import FullyShardedDataParallel as FSDP
+import flax.linen as nn
+import gym
+import whisper
+from .deepmind_lab_integration import DeepMindLabIntegration
 
-class NextGenModel(hk.Module):
-    def __init__(self, num_layers, hidden_size, num_heads, dropout_rate, use_relative_attention=False, use_gradient_checkpointing=False, use_mixed_precision=False):
-        super().__init__()
-        assert hidden_size % num_heads == 0, "hidden_size must be divisible by num_heads"
-        assert num_layers > 0, "num_layers must be greater than 0"
-        assert 0 <= dropout_rate < 1, "dropout_rate must be between 0 and 1"
-        self.num_layers = num_layers
-        self.hidden_size = hidden_size
-        self.num_heads = num_heads
-        self.dropout_rate = dropout_rate
-        self.use_relative_attention = use_relative_attention
-        self.use_gradient_checkpointing = use_gradient_checkpointing
-        self.use_mixed_precision = use_mixed_precision
+class NextGenModel(nn.Module):
+    num_layers: int
+    hidden_size: int
+    num_heads: int
+    dropout_rate: float
+    use_relative_attention: bool = False
+    use_gradient_checkpointing: bool = False
+    use_mixed_precision: bool = False
+
+    def setup(self):
+        assert self.hidden_size % self.num_heads == 0, "hidden_size must be divisible by num_heads"
+        assert self.num_layers > 0, "num_layers must be greater than 0"
+        assert 0 <= self.dropout_rate < 1, "dropout_rate must be between 0 and 1"
+
+        self.dense = nn.Dense(features=self.hidden_size)
+        self.layer_norm = nn.LayerNorm()
+        self.self_attention = nn.SelfAttention(
+            num_heads=self.num_heads,
+            qkv_features=self.hidden_size,
+            out_features=self.hidden_size
+        )
+        self.dropout = nn.Dropout(rate=self.dropout_rate)
+        self.ff_dense1 = nn.Dense(features=self.hidden_size * 4)
+        self.ff_dense2 = nn.Dense(features=self.hidden_size)
+
+        self.whisper_model = whisper.load_model('base')
+        self.deepmind_lab_env = DeepMindLabIntegration(level_name="seekavoid_arena_01")
 
     def __call__(self, x, train: bool = False):
         if self.use_mixed_precision:
@@ -36,89 +54,68 @@ class NextGenModel(hk.Module):
         return x
 
     def encoder_layer(self, x, train: bool):
-        # Store the original input shape
         original_shape = x.shape
 
-        # Project input to match hidden size
-        # This ensures that x has the correct number of channels (self.hidden_size)
-        x = hk.Linear(output_size=self.hidden_size)(x)
+        x = self.dense(x)
 
-        # Reshape x to 3D if it's 4D (image-like input)
         is_4d = len(original_shape) == 4
         if is_4d:
             batch, height, width, channels = x.shape
             x = x.reshape(batch, height * width, channels)
 
-        # Self-attention
         residual = x
-        x = hk.LayerNorm(axis=-1, create_scale=True, create_offset=True, param_axis=(), scale_init=hk.initializers.Constant(1.0))(x)
+        x = self.layer_norm(x)
 
         if self.use_relative_attention:
             x = self.relative_multi_head_attention(x, train)
         else:
-            x = hk.MultiHeadAttention(
-                num_heads=self.num_heads,
-                key_size=self.hidden_size // self.num_heads,
-                model_size=self.hidden_size,
-                w_init=hk.initializers.VarianceScaling(2.0)
-            )(x, x, x)
+            x = self.self_attention(x)
 
-        x = hk.dropout(hk.next_rng_key(), self.dropout_rate, x) if train else x
-
-        # Residual connection (shapes are guaranteed to match due to initial projection)
+        x = self.dropout(x, deterministic=not train)
         x = x + residual
 
-        # Feed-forward
         residual = x
-        x = hk.LayerNorm(axis=-1, create_scale=True, create_offset=True, param_axis=(), scale_init=hk.initializers.Constant(1.0))(x)
-        x = hk.Linear(output_size=self.hidden_size * 4)(x)
-        x = jax.nn.gelu(x)
-        x = hk.Linear(output_size=self.hidden_size)(x)
-        x = hk.dropout(hk.next_rng_key(), self.dropout_rate, x) if train else x
-
-        # Residual connection (shapes are guaranteed to match)
+        x = self.layer_norm(x)
+        x = self.ff_dense1(x)
+        x = nn.gelu(x)
+        x = self.ff_dense2(x)
+        x = self.dropout(x, deterministic=not train)
         x = x + residual
 
-        # Reshape back to original shape if it was 4D
         if is_4d:
             x = x.reshape(original_shape[0], original_shape[1], original_shape[2], -1)
 
-        # Ensure final output matches original shape
-        # This step is crucial to maintain compatibility with the rest of the network
         if x.shape != original_shape:
-            x = hk.Linear(output_size=original_shape[-1])(x)
+            x = nn.Dense(features=original_shape[-1])(x)
 
-        # Final shape check
         assert x.shape == original_shape, f"Output shape {x.shape} does not match input shape {original_shape}"
 
         return x
 
+    def train_with_deepmind_lab(self, num_episodes):
+        for episode in range(num_episodes):
+            timestep = self.deepmind_lab_env.reset()
+            while not timestep.last():
+                action = self.select_action(timestep.observation)
+                timestep = self.deepmind_lab_env.step(action)
+                self.update_model(timestep)
+
     def relative_multi_head_attention(self, x, train: bool):
         seq_len = x.shape[1]
-
-        # Generate relative position encoding
         relative_positions = jnp.arange(seq_len)[:, None] - jnp.arange(seq_len)[None, :]
         relative_position_encoding = self.relative_position_encoding(relative_positions)
 
-        # Perform multi-head attention with relative position encoding
-        mha = hk.MultiHeadAttention(
-            num_heads=self.num_heads,
-            key_size=self.hidden_size // self.num_heads,
-            model_size=self.hidden_size,
-            w_init=hk.initializers.VarianceScaling(2.0)
-        )
+        q, k, v = self.self_attention.qkv_proj(x)
+        attn_weights = jnp.einsum('bqhd,bkhd,qkd->bqkh', q, k, relative_position_encoding)
+        attn_weights = nn.softmax(attn_weights / jnp.sqrt(self.hidden_size // self.num_heads), axis=2)
+        attn_output = jnp.einsum('bqkh,bkhd->bqhd', attn_weights, v)
 
-        q, k, v = mha.compute_qkv(x, x, x)
-        attn_weights = mha.attention_weights(q, k, relative_position_encoding)
-        attn_output = jnp.einsum('bhts,bshd->bthd', attn_weights, v)
-
-        return mha.linear_projection(attn_output)
+        return self.self_attention.out_proj(attn_output)
 
     def relative_position_encoding(self, relative_positions):
-        max_distance = 128  # You can adjust this value
+        max_distance = 128
         clipped_positions = jnp.clip(relative_positions, -max_distance, max_distance)
 
-        # Create sinusoidal position encoding
         dim = self.hidden_size // 2
         div_term = jnp.exp(jnp.arange(0, dim, 2) * -(jnp.log(10000.0) / dim))
         pe = jnp.zeros((*clipped_positions.shape, self.hidden_size))
@@ -127,15 +124,38 @@ class NextGenModel(hk.Module):
 
         return pe
 
-def create_model(num_layers, hidden_size, num_heads, dropout_rate, use_relative_attention=False, use_gradient_checkpointing=False, use_mixed_precision=False):
-    def _model(x, train=False):
-        model = NextGenModel(num_layers, hidden_size, num_heads, dropout_rate, use_relative_attention, use_gradient_checkpointing, use_mixed_precision)
-        return model(x, train)
+    def transcribe_audio(self, audio_path):
+        result = self.whisper_model.transcribe(audio_path)
+        return result['text']
 
-    if use_mixed_precision:
-        return hk.transform(pjit(_model))
-    else:
-        return hk.transform(_model)
+
+
+
+
+class GymEnvironment:
+    def __init__(self, env_name, model: nn.Module, num_episodes=1000, max_steps_per_episode=200):
+        self.env = gym.make(env_name)
+        self.model = model
+        self.num_episodes = num_episodes
+        self.max_steps_per_episode = max_steps_per_episode
+        self.params = self.model.init(jax.random.PRNGKey(0), self.env.observation_space.sample())
+
+    def train(self):
+        for episode in range(self.num_episodes):
+            observation, _ = self.env.reset()
+            total_reward = 0
+            for step in range(self.max_steps_per_episode):
+                action = self.model.apply(self.params, observation)
+                observation, reward, done, truncated, info = self.env.step(action)
+                total_reward += reward
+                if done or truncated:
+                    break
+            print(f"Episode {episode + 1}: Total Reward: {total_reward}")
+
+# Example usage:
+# model = NextGenModel(num_layers=6, hidden_size=512, num_heads=8, dropout_rate=0.1)
+# gym_env = GymEnvironment(env_name='CartPole-v1', model=model)
+# gym_env.train()
 
 def create_optimizer(learning_rate: float = 1e-3):
     return optax.adam(learning_rate)
