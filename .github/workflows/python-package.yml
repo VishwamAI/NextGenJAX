@@ -50,11 +50,16 @@ jobs:
       run: |
         which gettext
         gettext --version
+    - name: Set PKG_CONFIG_PATH
+      run: |
+        echo "PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
     - name: Clone and install DeepMind Lab
       run: |
         git clone https://github.com/deepmind/lab.git
         cd lab
-        bazel build -c opt //python/pip_package:build_pip_package
+        pkg-config --cflags --libs glib-2.0
+        export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig:$PKG_CONFIG_PATH
+        bazel build --verbose_failures -c opt //python/pip_package:build_pip_package
         ./bazel-bin/python/pip_package/build_pip_package /tmp/dmlab_pkg
         pip install /tmp/dmlab_pkg/deepmind_lab-*.whl
     - name: Install TensorFlow and PyTorch
