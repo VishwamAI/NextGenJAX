@@ -5,9 +5,9 @@ import numpy as np
 import traceback
 
 def set_deepmind_lab_runfiles_path():
-    lab_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+    lab_dir = os.environ.get('DEEPMIND_LAB_PATH', '/home/runner/work/NextGenJAX/NextGenJAX/lab')
     print(f"Setting DeepMind Lab runfiles path to: {lab_dir}")
-    deepmind_lab.set_runfiles_path(os.path.join(lab_dir, 'lab'))
+    deepmind_lab.set_runfiles_path(lab_dir)
     print(f"Runfiles path set to: {deepmind_lab.runfiles_path()}")
 
 set_deepmind_lab_runfiles_path()
@@ -23,7 +23,8 @@ class DeepMindLabIntegration:
         """
         self.level_name = level_name
         self.config = config if config is not None else {'width': '320', 'height': '240'}
-        self.config['levelDirectory'] = os.path.abspath(os.path.join('lab', 'game_scripts', 'levels'))
+        lab_dir = os.environ.get('DEEPMIND_LAB_PATH', '/home/runner/work/NextGenJAX/NextGenJAX/lab')
+        self.config['levelDirectory'] = os.path.join(lab_dir, 'assets/game_scripts')
         self.env = self._create_environment()
 
     def _create_environment(self):
@@ -46,11 +47,11 @@ class DeepMindLabIntegration:
         print(f"Level file exists: {os.path.exists(level_path)}")
 
         # Set the runfiles path before creating the environment
-        deepmind_lab.set_runfiles_path(os.path.abspath('lab'))
+        lab_dir = os.environ.get('DEEPMIND_LAB_PATH', '/home/runner/work/NextGenJAX/NextGenJAX/lab')
+        deepmind_lab.set_runfiles_path(lab_dir)
         print(f"Full runfiles path: {os.path.abspath(deepmind_lab.runfiles_path())}")
 
         # Set the Lua package path
-        lab_dir = os.path.abspath('lab')
         game_scripts_dir = os.path.join(lab_dir, 'game_scripts')
         factories_dir = os.path.join(game_scripts_dir, 'factories')
         lua_package_path = f"{game_scripts_dir}/?.lua;{factories_dir}/?.lua"
