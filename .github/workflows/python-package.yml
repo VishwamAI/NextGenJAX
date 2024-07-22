@@ -63,9 +63,11 @@ jobs:
         cd lab
         pkg-config --cflags --libs glib-2.0
         export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig:$PKG_CONFIG_PATH
-        bazel build --verbose_failures -c opt //python/pip_package:build_pip_package
+        bazel build --verbose_failures -c opt //python/pip_package:build_pip_package //python:deepmind_lab.so
         ./bazel-bin/python/pip_package/build_pip_package /tmp/dmlab_pkg
-        pip install /tmp/dmlab_pkg/deepmind_lab-*.whl
+        mkdir -p /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/deepmind_lab/
+        cp ./bazel-bin/python/deepmind_lab.so /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/deepmind_lab/
+        pip install --no-deps /tmp/dmlab_pkg/deepmind_lab-*.whl
     - name: Install dm_env
       run: |
         python -m pip install --upgrade pip
@@ -73,6 +75,9 @@ jobs:
     - name: Verify DeepMind Lab installation
       run: |
         python -c "import deepmind_lab; import dm_env; print(deepmind_lab.__file__); print(dm_env.__file__)"
+    - name: Verify deepmind_lab.so file
+      run: |
+        ls -l /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/deepmind_lab/deepmind_lab.so
     - name: Install TensorFlow and PyTorch
       run: |
         pip install tensorflow torch torchvision torchaudio
