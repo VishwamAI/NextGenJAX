@@ -1,5 +1,5 @@
-
 # Verify that the pip model is compatible with Jax, Fairscale, Gym, and Whisper functionalities
+import jax.numpy as jnp
 from nextgenjax.model import NextGenModel
 
 # Instantiate the model to check compatibility
@@ -22,4 +22,3 @@ print('Gym reinforcement learning environment created:', rl_environment)
 audio_data = None
 speech_to_text_result = model.speech_to_text(audio_data)
 print('Whisper speech-to-text result:', speech_to_text_result)
-

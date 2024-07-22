@@ -1,6 +1,5 @@
-
 from moviepy.editor import TextClip
-from PIL import Image
+from PIL import Image, ImageDraw
 import io
 
 # Example of text-to-video generation function
@@ -30,4 +29,3 @@ def text_to_code(text):
 def image_to_text(image_data):
     # Placeholder logic for image-to-text generation
     pass
-
