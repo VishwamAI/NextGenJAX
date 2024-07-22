@@ -13,3 +13,7 @@ transformers==4.38.0
 gym
 whisper
 -e .
+
+# TensorFlow and PyTorch dependencies for compatibility
+tensorflow>=2.9.1
+torch>=1.12.1

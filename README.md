@@ -4,6 +4,9 @@
 ## Overview
 NextGenJAX is an advanced neural network library built on top of JAX, designed to surpass the capabilities of existing libraries such as Google DeepMind's Haiku and Optax. It leverages the flexibility and performance of JAX and Flax to provide a modular, high-performance, and easy-to-use framework for building and training neural networks.
 
+## Framework Compatibility
+NextGenJAX now supports both TensorFlow and PyTorch, allowing users to choose their preferred deep learning framework. This compatibility enables seamless integration with existing TensorFlow or PyTorch workflows while leveraging the advanced features of NextGenJAX.
+
 ## Features
 - Modular design with customizable layers and activation functions
 - Support for various optimizers, including custom optimizers
@@ -24,46 +27,58 @@ cd NextGenJAX
 pip install -r requirements.txt
 ```
 
+NextGenJAX now supports both TensorFlow and PyTorch. To use these frameworks, make sure to install them separately:
+
+For TensorFlow:
+```bash
+pip install tensorflow>=2.9.1
+```
+
+For PyTorch:
+```bash
+pip install torch>=1.12.1
+```
+
 ## Usage
+NextGenJAX now supports both TensorFlow and PyTorch frameworks. Users can choose their preferred framework when initializing the model.
+
 ### Creating a Model
-To create a model using NextGenJAX, define the layers and activation functions, and initialize the model:
+To create a model using NextGenJAX, choose your framework and initialize the model:
+
 ```python
-import jax
-import jax.numpy as jnp
-from src.layers import DenseLayer, ConvolutionalLayer
-from src.custom_layers import CustomLayer
 from src.model import NextGenModel
 
-# Define the layers
-layers = [
-    DenseLayer(features=128, activation=jnp.relu),
-    ConvolutionalLayer(features=64, kernel_size=(3, 3), activation=jnp.relu),
-    CustomLayer(features=10, activation=jnp.tanh)
-]
+# Initialize the model with TensorFlow
+tf_model = NextGenModel(framework='tensorflow', num_layers=6, hidden_size=512, num_heads=8, dropout_rate=0.1)
 
-# Initialize the model
-model = NextGenModel(layers=layers)
+# Initialize the model with PyTorch
+pytorch_model = NextGenModel(framework='pytorch', num_layers=6, hidden_size=512, num_heads=8, dropout_rate=0.1)
 ```
 
 ### Training the Model
-To train the model, use the training loop provided in `train.py`:
+The training process remains similar for both frameworks. Here's an example using TensorFlow:
+
 ```python
+import tensorflow as tf
 from src.train import create_train_state, train_model
-from src.optimizers import sgd, adam
 
 # Define the optimizer
-optimizer = adam(learning_rate=0.001)
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
 
 # Create the training state
-train_state = create_train_state(model, optimizer)
+train_state = create_train_state(tf_model, optimizer)
 
 # Define the training data and loss function
 train_data = ...  # Your training data here
-loss_fn = ...  # Your loss function here
+loss_fn = tf.keras.losses.SparseCategoricalCrossentropy()
 
 # Train the model
 train_model(train_state, train_data, loss_fn, num_epochs=10)
 ```
+
+For PyTorch, the process is similar, but you'll use PyTorch-specific optimizers and loss functions.
+
+Note: The core functionality remains the same for both frameworks, allowing users to leverage either TensorFlow or PyTorch based on their preference or specific use case.
 
 ## Development Setup
 To set up a development environment:
