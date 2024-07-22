@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="nextgenjax",
-    version="0.1.2",
+    version="0.2.0",
     author="kasinadhsarma",
     author_email="kasinadhsarma@gmail.com",
     description="A JAX-based neural network library surpassing Google DeepMind's Haiku and Optax",
@@ -12,16 +12,24 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     install_requires=[
-        "jax==0.4.30",
-        "jaxlib==0.4.30",
-        "flax==0.8.5",
-        "optax==0.2.3",
-        "numpy>=1.26.4",
-        "scipy>=1.10.1",
-        "fairscale>=0.4.6",
-        "transformers>=4.30.2",
+        "jax",
+        "jaxlib",
         "chex>=0.1.86",
-        "dm-haiku>=0.0.5",
+        "dm-haiku",
+        "fairscale",
+        "flax",
+        "numpy>=1.24.1",
+        "optax",
+        "scipy",
+        "transformers==4.38.0",
+        "gym",
+        "whisper",
+        "tensorflow",
+        "torch",
+        "sympy",
+        "stable-baselines3",
+        "moviepy",
+        "Pillow",
     ],
     extras_require={
         "dev": [
@@ -38,4 +46,5 @@ setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.9",
+    license="MIT",
 )
