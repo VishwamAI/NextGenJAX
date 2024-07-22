@@ -11,4 +11,5 @@ optax==0.2.3
 scipy==1.10.1
 transformers==4.38.0
 gym
+whisper
 -e .
