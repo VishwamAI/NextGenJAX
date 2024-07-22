@@ -1,6 +1,6 @@
-import jax
 import jax.numpy as jnp
 import jax.tree_util
+from jax import grad, jit, vmap
 from typing import Callable, Tuple, Dict
 
 

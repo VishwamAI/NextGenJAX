@@ -13,3 +13,20 @@ transformers==4.38.0
 gym
 whisper
 -e .
+
+# TensorFlow and PyTorch dependencies for compatibility
+tensorflow>=2.9.1
+torch>=1.12.1
+
+# Additional dependencies for new features
+# For advanced mathematical operations and problem generation
+sympy>=1.10.1
+
+# For reinforcement learning through Q-learning algorithm
+stable-baselines3>=1.5.0
+
+# For text-to-video generation
+moviepy>=1.0.3
+
+# For image-to-text and text-to-image generation
+Pillow>=9.2.0

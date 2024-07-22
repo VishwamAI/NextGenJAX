@@ -1,11 +1,8 @@
-import sys
-sys.path.append('/home/ubuntu/.cache/bazel/_bazel_ubuntu/41e4a129ffb2c6668d8a8b374d7c59f9/execroot/_main/bazel-out/k8-opt/bin')
-sys.path.append('/home/ubuntu/NextGenJAX/lab')
 import jax
 import jax.numpy as jnp
 import pytest
-from src.nextgenjax.layers import DenseLayer, ConvolutionalLayer
-from src.nextgenjax.custom_layers import CustomLayer
+from nextgenjax.layers import DenseLayer, ConvolutionalLayer
+from nextgenjax.custom_layers import CustomLayer
 import jax.nn as nn
 
 @pytest.mark.parametrize(
