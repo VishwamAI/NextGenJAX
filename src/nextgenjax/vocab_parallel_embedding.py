@@ -2,7 +2,9 @@ import jax
 import jax.numpy as jnp
 from flax import linen as nn
 from typing import Callable
-
+from langchain_community.llms import Ollama
+from langchain.prompts import PromptTemplate
+import sympy
 
 class VocabParallelEmbedding(nn.Module):
     num_embeddings: int
@@ -35,3 +37,27 @@ class VocabParallelEmbedding(nn.Module):
 
         # Gather the results from all devices
         return jnp.concatenate(result, axis=0)
+
+# Langchain with Ollama integration
+def init_ollama_model(model_name="ollama"):
+    return Ollama(model=model_name)
+
+# Mathematical operations using SymPy
+def perform_math_operation(expression):
+    return sympy.sympify(expression)
+
+# Example usage of Ollama model and mathematical operations
+if __name__ == "__main__":
+    # Initialize Ollama model
+    ollama_model = init_ollama_model()
+
+    # Create a prompt using Langchain
+    prompt = PromptTemplate(template="Calculate the derivative of: {function}", input_variables=["function"])
+    function = "sin(x)"
+
+    # Invoke the Ollama model with the prompt
+    result = ollama_model(prompt.format(function=function))
+
+    # Perform a mathematical operation on the result
+    math_result = perform_math_operation(result)
+    print("Math result:", math_result)

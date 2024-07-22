@@ -16,11 +16,11 @@ class DummyNextGenModel:
         if framework == 'tensorflow':
             self.model = tf.keras.Sequential([
                 tf.keras.layers.Input(shape=(input_dim,)),
-                tf.keras.layers.Dense(output_dim)
+                tf.keras.layers.Dense(1, activation='linear')  # Always use 1 for binary classification
             ])
         elif framework == 'pytorch':
             self.model = torch.nn.Sequential(
-                torch.nn.Linear(input_dim, output_dim)
+                torch.nn.Linear(input_dim, 1)  # Always use 1 for binary classification
             )
         else:
             raise ValueError(f"Unsupported framework: {framework}")
@@ -72,11 +72,11 @@ logger = logging.getLogger(__name__)
 
 # TensorFlow loss function
 def tf_loss_fn(y_true, y_pred):
-    return tf.keras.losses.mean_squared_error(y_true, y_pred)
+    return tf.keras.losses.BinaryCrossentropy(from_logits=True)(y_true, y_pred)
 
 # PyTorch loss function
 def torch_loss_fn(y_pred, y_true):
-    return torch.nn.functional.mse_loss(y_pred, y_true)
+    return torch.nn.functional.binary_cross_entropy_with_logits(y_pred, y_true)
 
 
 
@@ -93,12 +93,12 @@ def test_create_train_state():
         input_shape = (batch_size, 2048)
         learning_rate = 1e-3
         input_dim = 2048
-        output_dim = hidden_size
+        output_dim = 1  # Changed to 1 for binary classification
 
         logger.debug(f"Input shape: {input_shape}")
 
         # Test TensorFlow model
-        tf_model = DummyNextGenModel(framework='tensorflow', num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1, input_dim=input_dim, output_dim=output_dim, sequence_length=sequence_length)
+        tf_model = DummyNextGenModel('tensorflow', input_dim, output_dim, sequence_length)
         logger.debug(f"TensorFlow model created: {tf_model}")
 
         tf_optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
@@ -146,10 +146,10 @@ def test_train_step():
     logger.debug("Starting test_train_step")
     try:
         input_dim = 2048
-        output_dim = hidden_size
+        output_dim = 1  # Binary classification
 
         # TensorFlow test
-        tf_model = DummyNextGenModel(framework='tensorflow', num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1, input_dim=input_dim, output_dim=output_dim, sequence_length=sequence_length)
+        tf_model = DummyNextGenModel(framework='tensorflow', input_dim=input_dim, output_dim=output_dim, sequence_length=sequence_length)
         optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
         logger.debug("TensorFlow model and optimizer created")
 
@@ -157,14 +157,14 @@ def test_train_step():
         def tf_train_step(model, optimizer, x, y):
             with tf.GradientTape() as tape:
                 logits = model(x, training=True)
-                loss = tf.keras.losses.sparse_categorical_crossentropy(y, logits, from_logits=True)
+                loss = tf.keras.losses.binary_crossentropy(y, logits, from_logits=True)
             gradients = tape.gradient(loss, model.trainable_variables)
             optimizer.apply_gradients(zip(gradients, model.trainable_variables))
             return loss
 
         tf_batch = {
             'image': tf.ones((batch_size, input_dim)),
-            'label': tf.zeros((batch_size,), dtype=tf.int32)
+            'label': tf.random.uniform((batch_size, 1), 0, 1, dtype=tf.float32)  # Binary labels (0 or 1)
         }
         print(f"TensorFlow batch image shape: {tf_batch['image'].shape}")
         print(f"TensorFlow model expected input shape: {tf_model.model.input_shape}")
@@ -180,14 +180,14 @@ def test_train_step():
             model.train()
             optimizer.zero_grad()
             logits = model(x)
-            loss = torch.nn.functional.cross_entropy(logits, y)
+            loss = torch.nn.functional.binary_cross_entropy_with_logits(logits, y)
             loss.backward()
             optimizer.step()
             return loss.item()
 
         torch_batch = {
             'image': torch.ones((batch_size, input_dim)),
-            'label': torch.zeros((batch_size,), dtype=torch.long)
+            'label': torch.randint(0, 2, (batch_size, 1)).float()  # Binary labels (0 or 1)
         }
         print(f"PyTorch batch image shape: {torch_batch['image'].shape}")
         print(f"PyTorch model expected input shape: {torch_model.model[0].in_features}")
@@ -209,26 +209,26 @@ def test_train_model_tensorflow():
 
         # Calculate input_dim and output_dim
         input_dim = 2048
-        output_dim = hidden_size  # Assuming output dimension is the same as hidden_size
+        output_dim = 1  # Binary classification
 
         # Create dataset with correct input shape
         dataset = tf.data.Dataset.from_tensor_slices({
             "image": tf.random.normal((10, input_dim)),
-            "label": tf.zeros((10,), dtype=tf.int32)
+            "label": tf.random.uniform((10, 1), 0, 1, dtype=tf.float32)  # Binary labels (0 or 1)
         }).batch(32)
         logger.debug(f"TensorFlow dataset created with {len(list(dataset))} batches")
 
-        model = DummyNextGenModel(framework='tensorflow', num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1, input_dim=input_dim, output_dim=output_dim, sequence_length=sequence_length)
+        model = DummyNextGenModel(framework='tensorflow', input_dim=input_dim, output_dim=output_dim, sequence_length=sequence_length)
         logger.debug("TensorFlow model created")
 
-        loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True, reduction=tf.keras.losses.Reduction.NONE)
+        loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=True)
         logger.debug("TensorFlow loss function defined")
 
         @tf.function
         def train_step(images, labels):
             with tf.GradientTape() as tape:
                 logits = model(images, training=True)
-                loss = tf.reduce_mean(loss_fn(labels, logits))
+                loss = loss_fn(labels, logits)
             gradients = tape.gradient(loss, model.trainable_variables)
             optimizer.apply_gradients(zip(gradients, model.trainable_variables))
             return loss
@@ -258,17 +258,17 @@ def test_train_model_tensorflow():
 def test_train_model_pytorch():
     logger.debug("Starting test_train_model_pytorch")
     try:
-        input_dim = 2048  # Changed from sequence_length * hidden_size
-        output_dim = 64  # Change output dimension to 64
+        input_dim = 2048
+        output_dim = 1  # Binary classification
 
-        model = DummyNextGenModel(framework='pytorch', num_layers=2, hidden_size=hidden_size, num_heads=4, dropout_rate=0.1, input_dim=input_dim, output_dim=output_dim, sequence_length=sequence_length)
+        model = DummyNextGenModel(framework='pytorch', input_dim=input_dim, output_dim=output_dim, sequence_length=sequence_length)
         logger.debug("PyTorch model created")
 
         optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
         logger.debug("PyTorch optimizer created: Adam with learning rate 1e-3")
 
         dataset = [
-            {"image": torch.ones((32, input_dim)), "label": torch.nn.functional.one_hot(torch.zeros(32, dtype=torch.long), num_classes=output_dim).float()}
+            {"image": torch.ones((32, input_dim)), "label": torch.randint(0, 2, (32, 1)).float()}  # Binary labels (0 or 1)
             for _ in range(10)
         ]
         logger.debug(f"PyTorch dataset created with {len(dataset)} batches")
