@@ -68,6 +68,9 @@ jobs:
         mkdir -p /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/deepmind_lab/
         cp ./bazel-bin/deepmind_lab.so /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/deepmind_lab/
         pip install --no-deps .
+        echo "DeepMind Lab installation directory:"
+        ls -l /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/deepmind_lab/
+        python -c "import site; print(site.getsitepackages())"
     - name: Debug - List DeepMind Lab build directory
       run: |
         ls -R lab/bazel-bin/
@@ -83,6 +86,12 @@ jobs:
     - name: Verify DeepMind Lab installation
       run: |
         python -c "import deepmind_lab; import dm_env; print(deepmind_lab.__file__); print(dm_env.__file__)"
+    - name: Debug Python path and site-packages
+      run: |
+        python -c "import sys; print('Python path:', sys.path)"
+        ls -R /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/
+        echo "Contents of deepmind_lab directory:"
+        ls -l /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/deepmind_lab/
     - name: Debug - Print Python sys.path and DEEPMIND_LAB_PATH
       run: |
         python -c "import sys; print('Python sys.path:', sys.path)"
