@@ -83,6 +83,10 @@ jobs:
     - name: Verify DeepMind Lab installation
       run: |
         python -c "import deepmind_lab; import dm_env; print(deepmind_lab.__file__); print(dm_env.__file__)"
+    - name: Debug - Print Python sys.path and DEEPMIND_LAB_PATH
+      run: |
+        python -c "import sys; print('Python sys.path:', sys.path)"
+        echo "DEEPMIND_LAB_PATH=$DEEPMIND_LAB_PATH"
     - name: Debug - Check DeepMind Lab installation
       run: |
         python -c "import sys; print(sys.path)"
