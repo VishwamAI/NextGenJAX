@@ -63,15 +63,14 @@ jobs:
         cd lab
         pkg-config --cflags --libs glib-2.0
         export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig:$PKG_CONFIG_PATH
-        bazel build --verbose_failures -c opt //python/pip_package:build_pip_package //python:deepmind_lab.so
-        ls -l ./bazel-bin/python/  # Add this line to list the contents of the build output directory
-        ./bazel-bin/python/pip_package/build_pip_package /tmp/dmlab_pkg
+        bazel build --verbose_failures -c opt //:deepmind_lab.so
+        ls -l ./bazel-bin/  # List the contents of the build output directory
         mkdir -p /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/deepmind_lab/
-        cp ./bazel-bin/python/deepmind_lab.so /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/deepmind_lab/
-        pip install --no-deps /tmp/dmlab_pkg/deepmind_lab-*.whl
+        cp ./bazel-bin/deepmind_lab.so /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/deepmind_lab/
+        pip install --no-deps .
     - name: Debug - List DeepMind Lab build directory
       run: |
-        ls -R lab/bazel-bin/python/
+        ls -R lab/bazel-bin/
         echo "PKG_CONFIG_PATH: $PKG_CONFIG_PATH"
     - name: Debug - Check Python site-packages
       run: |
