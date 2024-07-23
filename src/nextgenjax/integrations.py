@@ -1,4 +1,3 @@
-
 # Integration of Jax for advanced mathematical operations and JIT compilation
 import jax
 from jax import jit, grad, vmap
@@ -41,9 +40,10 @@ def init_ollama_model(model_name="mistral"):
 
 # Example of using Langchain with Ollama for text generation
 def generate_text_with_ollama(input_text):
+    ollama_instance = init_ollama_model()
     prompt_template = PromptTemplate(template="Generate text for: {input_text}", input_variables=["input_text"])
     prompt = prompt_template.format(input_text=input_text)
-    return ollama_model(prompt)
+    return ollama_instance(prompt)
 
 # Example of incorporating mathematical operations using SymPy
 def perform_math_operation(expression):
