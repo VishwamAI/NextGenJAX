@@ -89,6 +89,10 @@ class TestTraining(unittest.TestCase):
             print(f"History type: {type(history)}")
             print(f"History content: {history}")
             print(f"Actual number of epochs in history: {len(history)}")
+
+            print("Training history:")
+            for i, epoch_data in enumerate(history):
+                print(f"Epoch {i+1}: Train Loss: {epoch_data['train_loss']:.6f}, Val Loss: {epoch_data['val_loss']:.6f}")
         except Exception as e:
             self.fail(f"Training failed with error: {str(e)}")
 
