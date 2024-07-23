@@ -38,12 +38,12 @@ NextGenJAX now supports both TensorFlow and PyTorch. To use these frameworks, ma
 
 For TensorFlow:
 ```bash
-pip install tensorflow>=2.9.1
+pip install tensorflow
 ```
 
 For PyTorch:
 ```bash
-pip install torch>=1.12.1
+pip install torch
 ```
 
 ## Usage
