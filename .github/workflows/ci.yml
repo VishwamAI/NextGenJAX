@@ -8,7 +8,7 @@ jobs:
     timeout-minutes: 40
     strategy:
       matrix:
-        python-version: [3.9, '3.10']
+        python-version: [3.9, '3.10', '3.11', '3.12']
 
     steps:
     - uses: actions/checkout@v4
@@ -51,19 +51,19 @@ jobs:
         pip install torch --index-url https://download.pytorch.org/whl/cpu
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         if [ -f test_requirements.txt ]; then pip install -r test_requirements.txt; fi
-        pip install jax==0.4.30 jaxlib==0.4.30
-        pip install optax==0.2.3
-        pip install dm-haiku==0.0.11
+        pip install jax jaxlib
+        pip install optax
+        pip install dm-haiku
         pip install langchain-community
         echo "PYTHONPATH=$PYTHONPATH:$(pwd)" >> $GITHUB_ENV
         echo "::endgroup::"
       timeout-minutes: 30
-    - name: Install nextgenjax
+    - name: Install NextGenJAX package
       run: |
-        echo "::group::Install nextgenjax"
+        echo "::group::Install NextGenJAX package"
         set -x
         pip install -e .
-        echo "nextgenjax installation completed"
+        echo "NextGenJAX installation completed"
         echo "::endgroup::"
     - name: Debug information
       run: |
@@ -72,7 +72,6 @@ jobs:
         pip list
         pip show nextgenjax
         echo "::endgroup::"
-# This section has been intentionally left blank as per the instructions to remove redundant debugging steps.
 
     - name: Test nextgenjax import
       run: |
