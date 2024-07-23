@@ -81,6 +81,13 @@ class Trainer:
             print(f"Completed epoch {epoch + 1}/{num_epochs}")
             print(f"Current history length: {len(history)}")
 
+            # Add print statements to monitor the loss at each epoch
+            print(f"Epoch {epoch + 1}/{num_epochs}")
+            print(f"Training loss: {epoch_result[-1]['train_loss']:.4f}")
+            if 'val_loss' in epoch_result[-1]:
+                print(f"Validation loss: {epoch_result[-1]['val_loss']:.4f}")
+            print("-" * 30)
+
             if self.ollama:
                 analysis = self.ollama.invoke(f"Analyze training progress: Epoch {epoch + 1}, Metrics: {epoch_result[-1]}")
                 print(f"Ollama analysis for epoch {epoch + 1}: {analysis}")
@@ -392,9 +399,9 @@ def train_model_tensorflow(model, train_dataset, num_epochs, optimizer, loss_fn,
             epoch_metrics["val_loss"] = float(avg_val_loss)
 
         metrics_history.append(epoch_metrics)
-        print(f"Epoch {epoch + 1}, Train Loss: {avg_train_loss}", end="")
+        print(f"Epoch {epoch + 1}, Train Loss: {avg_train_loss:.6f}", end="")
         if val_dataset is not None:
-            print(f", Val Loss: {avg_val_loss}", end="")
+            print(f", Val Loss: {avg_val_loss:.6f}", end="")
         print()
 
         # Integrate Ollama for additional insights
@@ -423,7 +430,7 @@ def train_model_pytorch(model, train_dataset, num_epochs, optimizer, loss_fn, ol
             epoch_loss.append(loss.item())
         avg_loss = sum(epoch_loss) / len(epoch_loss)
         metrics_history.append({"loss": float(avg_loss)})
-        print(f"Epoch {epoch + 1}, Loss: {avg_loss}")
+        print(f"Epoch {epoch + 1}, Loss: {avg_loss:.6f}")
 
         # Integrate Ollama for additional insights
         ollama_prompt = f"Analyze training progress: Epoch {epoch + 1}, Loss: {avg_loss}"
