@@ -70,8 +70,11 @@ class TestTraining(unittest.TestCase):
             np.array([[13.0, 14.0, 15.0], [16.0, 17.0, 18.0]]),
             np.array([[1], [0]])  # Updated to match the model's expected output shape
         )
-        print(f"Training data shape: {train_data[0].shape}, {train_data[1].shape}")
-        print(f"Validation data shape: {val_data[0].shape}, {val_data[1].shape}")
+        print(f"Train data shape: {train_data[0].shape}, {train_data[1].shape}")
+        print(f"Val data shape: {val_data[0].shape}, {val_data[1].shape}")
+
+        print("Initial model summary:")
+        self.model.summary()
 
         # Run training for multiple epochs
         num_epochs = 3
@@ -92,9 +95,19 @@ class TestTraining(unittest.TestCase):
 
             print("Training history:")
             for i, epoch_data in enumerate(history):
-                print(f"Epoch {i+1}: Train Loss: {epoch_data['train_loss']:.6f}, Val Loss: {epoch_data['val_loss']:.6f}")
+                print(f"Epoch {i+1}/{num_epochs}")
+                print(f"Train loss: {epoch_data['train_loss']:.6f}")
+                print(f"Val loss: {epoch_data['val_loss']:.6f}")
+                print(f"Model weights after epoch {i+1}:")
+                for layer in self.model.layers:
+                    print(f"Layer {layer.name}: {layer.get_weights()}")
+                print("--------------------")
         except Exception as e:
             self.fail(f"Training failed with error: {str(e)}")
+
+        print("Final model summary:")
+        self.model.summary()
+        print(f"Final history: {history}")
 
         self.assertIsNotNone(history, "Training history should not be None")
         self.assertEqual(len(history), num_epochs, f"Expected {num_epochs} epochs in history, but got {len(history)}. History: {history}")
@@ -111,7 +124,7 @@ class TestTraining(unittest.TestCase):
             val_losses = [epoch['val_loss'] for epoch in history if 'val_loss' in epoch]
             if val_losses:
                 self.assertGreater(len(val_losses), 0, "No validation loss recorded")
-                self.assertLess(val_losses[-1], val_losses[0], f"Validation loss did not decrease. Initial: {val_losses[0]}, Final: {val_losses[-1]}")
+                self.assertLess(val_losses[-1], val_losses[0], f"Validation loss did not decrease. Initial: {val_losses[0]:.6f}, Final: {val_losses[-1]:.6f}")
 
         # Check if the trainer datasets are properly initialized
         self.assertIsNotNone(self.trainer.train_dataset, "Train dataset was not initialized")
