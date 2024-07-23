@@ -14,6 +14,8 @@ import math
 import tensorflow as tf
 import torch
 import torch.nn as torch_nn
+from langchain_community.llms import Ollama
+from langchain.prompts import PromptTemplate
 
 class NextGenModelBase:
     def __init__(self, num_layers, hidden_size, num_heads, dropout_rate):
@@ -137,6 +139,8 @@ class NextGenModel:
 
         self.whisper_model = whisper.load_model('base')
         self.deepmind_lab_env = DeepMindLabIntegration(level_name="seekavoid_arena_01")
+        self.ollama_model = Ollama(model="llama2")
+        self.prompt_template = PromptTemplate(template="Analyze this: {input}", input_variables=["input"])
 
     def __call__(self, x, training=False):
         output = self.model(x, training=training)
@@ -163,6 +167,22 @@ class NextGenModel:
         result = self.whisper_model.transcribe(audio_path)
         return result['text']
 
+    def analyze_with_ollama(self, input_text):
+        prompt = self.prompt_template.format(input=input_text)
+        return self.ollama_model(prompt)
+
+    def save(self, filepath):
+        if self.framework == 'tensorflow':
+            self.model.save_weights(filepath)
+        elif self.framework == 'pytorch':
+            torch.save(self.model.state_dict(), filepath)
+
+    def load(self, filepath):
+        if self.framework == 'tensorflow':
+            self.model.load_weights(filepath)
+        elif self.framework == 'pytorch':
+            self.model.load_state_dict(torch.load(filepath))
+
 class GymEnvironment:
     def __init__(self, env_name, model: NextGenModel, num_episodes=1000, max_steps_per_episode=200):
         self.env = gym.make(env_name)
@@ -182,11 +202,6 @@ class GymEnvironment:
                     break
             print(f"Episode {episode + 1}: Total Reward: {total_reward}")
 
-# Example usage:
-# model = NextGenModel(framework='tensorflow', num_layers=6, hidden_size=512, num_heads=8, dropout_rate=0.1)
-# gym_env = GymEnvironment(env_name='CartPole-v1', model=model)
-# gym_env.train()
-
 def create_optimizer(framework='tensorflow', learning_rate=1e-3):
     if framework == 'tensorflow':
         return tf.keras.optimizers.Adam(learning_rate=learning_rate)
@@ -194,3 +209,21 @@ def create_optimizer(framework='tensorflow', learning_rate=1e-3):
         return torch.optim.Adam(learning_rate=learning_rate)
     else:
         raise ValueError("Unsupported framework. Choose 'tensorflow' or 'pytorch'.")
+
+if __name__ == "__main__":
+    # Example usage of the NextGenModel
+    model = NextGenModel(framework='tensorflow')
+    # Example input: Replace this with actual preprocessed data
+    example_input = tf.random.normal((1, 512))  # Assuming input shape of (batch_size, hidden_size)
+    outputs = model(example_input)
+    print(f"Output shape: {outputs.shape}")
+    # Train the model with DeepMind Lab
+    model.train_with_deepmind_lab(num_episodes=10)
+    # Transcribe audio
+    transcription = model.transcribe_audio('path_to_audio_file.wav')
+    # Analyze text with Ollama
+    analysis = model.analyze_with_ollama("Some text to analyze")
+    # Save the model to a file
+    model.save('path_to_save_model')
+    # Load the model from a file
+    model.load('path_to_load_model')

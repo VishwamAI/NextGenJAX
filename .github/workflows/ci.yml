@@ -54,6 +54,7 @@ jobs:
         pip install jax==0.4.30 jaxlib==0.4.30
         pip install optax==0.2.3
         pip install dm-haiku==0.0.11
+        pip install langchain-community
         echo "PYTHONPATH=$PYTHONPATH:$(pwd)" >> $GITHUB_ENV
         echo "::endgroup::"
       timeout-minutes: 30

@@ -2,7 +2,15 @@ from flax import linen as nn
 import jax.numpy as jnp
 from typing import Callable, Optional
 from transformers import FlaxAutoModelForSeq2SeqLM, AutoTokenizer
+from langchain_community.llms import Ollama
+from langchain.prompts import PromptTemplate
+import sympy
 
+def init_ollama_model(model_name="mistral"):
+    return Ollama(model=model_name)
+
+def perform_math_operation(expression):
+    return sympy.sympify(expression)
 
 class DenseLayer(nn.Module):
     features: int
@@ -53,7 +61,7 @@ class TransformerLayer(nn.Module):
         __call__(x: jnp.ndarray, max_length: int = 50) -> jnp.ndarray: Applies
             the transformer model to the input tensor.
     """
-    model_name: str
+    model_name: str = "google/flan-t5-base"
 
     def setup(self):
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
@@ -71,3 +79,32 @@ class TransformerLayer(nn.Module):
         output_text = self.tokenizer.decode(outputs[0],
                                             skip_special_tokens=True)
         return self.tokenizer(output_text, return_tensors="jax")["input_ids"]
+
+class OllamaLayer(nn.Module):
+    """
+    OllamaLayer integrates the Ollama model using Langchain.
+
+    Attributes:
+        model_name (str): The name of the Ollama model to use.
+
+    Methods:
+        setup(): Initializes the Ollama model.
+        __call__(x: str) -> str: Applies the Ollama model to the input string.
+    """
+    model_name: str = "mistral"
+
+    def setup(self):
+        self.ollama_model = init_ollama_model(self.model_name)
+        self.prompt_template = PromptTemplate(template="Process the following input: {input_text}", input_variables=["input_text"])
+
+    def __call__(self, x: str) -> str:
+        if not isinstance(x, str):
+            raise ValueError("Input must be a string")
+
+        prompt = self.prompt_template.format(input_text=x)
+        result = self.ollama_model(prompt)
+
+        # Perform a simple mathematical operation on the length of the result
+        math_result = perform_math_operation(f"len('{result}') + 1")
+
+        return f"Processed result: {result}\nMath operation result: {math_result}"

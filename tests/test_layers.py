@@ -4,6 +4,7 @@ import pytest
 from nextgenjax.layers import DenseLayer, ConvolutionalLayer
 from nextgenjax.custom_layers import CustomLayer
 import jax.nn as nn
+from unittest.mock import patch, MagicMock
 
 @pytest.mark.parametrize(
     "features, input_shape, activation",
@@ -52,11 +53,17 @@ def test_convolutional_layer(features, kernel_size, input_shape, activation):
         (30, (3, 15), None),
     ],
 )
-def test_custom_layer(features, input_shape, activation):
+@patch('nextgenjax.custom_layers.Ollama')
+def test_custom_layer(mock_ollama, features, input_shape, activation):
+    mock_ollama_instance = mock_ollama.return_value
+    mock_ollama_instance.generate.return_value = jnp.ones((input_shape[0], features))
+
     layer = CustomLayer(features=features, activation=activation)
     x = jnp.ones(input_shape)
     params = layer.init(jax.random.PRNGKey(0), x)
     y = layer.apply(params, x)
+
+    assert isinstance(y, jnp.ndarray)
     assert y.shape == (input_shape[0], features)
 
 
