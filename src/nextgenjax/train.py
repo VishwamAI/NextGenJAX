@@ -14,7 +14,7 @@ from unittest.mock import MagicMock
 OptimizerType = Union[tf.keras.optimizers.Optimizer, torch.optim.Optimizer]
 
 class TrainingConfig:
-    def __init__(self, learning_rate: float = 1e-4, batch_size: int = 32, ollama_model: str = "llama2", framework: str = "tensorflow"):
+    def __init__(self, learning_rate: float = 1e-5, batch_size: int = 32, ollama_model: str = "llama2", framework: str = "tensorflow"):
         self.learning_rate = learning_rate
         self.batch_size = batch_size
         self.ollama_model = ollama_model
