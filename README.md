@@ -1,6 +1,5 @@
 # NextGenJAX
 [![Python package](https://github.com/VishwamAI/NextGenJAX/actions/workflows/ci.yml/badge.svg)](https://github.com/VishwamAI/NextGenJAX/actions/workflows/ci.yml)
-[![PyPI version](https://badge.fury.io/py/nextgenjax.svg)](https://badge.fury.io/py/nextgenjax)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/VishwamAI/NextGenJAX/blob/main/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/VishwamAI/NextGenJAX.svg)](https://GitHub.com/VishwamAI/NextGenJAX/releases/)
 [![GitHub stars](https://img.shields.io/github/stars/VishwamAI/NextGenJAX.svg)](https://GitHub.com/VishwamAI/NextGenJAX/stargazers/)
